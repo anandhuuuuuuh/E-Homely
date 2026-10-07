@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="E-Homely">
+  <title>E-Homely | Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+<header class="site-header">
+  <nav class="navbar container">
+    <a class="brand" href="#">
+      <span class="brand-logo">
+        <img src="assets/images/ChatGPT Image Sep 18, 2026, 08_48_44 PM.png" alt="E-HOMELY Logo">
+      </span>
+      <span>
+          <strong></strong>
+          <small>Homely food, near you.</small>
+        </span>
+      </a>
+
+      <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">☰</button>
+
+      <div class="nav-links" id="navLinks">
+        <a class="active" href="#">Home</a>
+        <a href="pages/phase2/index.html">Availability Page</a>
+        <a href="categories.html">Menu</a>
+        <a href="#" class="coming-soon">About</a>
+        <a href="#" class="coming-soon">Contact</a>
+        <a href="#" class="nav-cta coming-soon">Check Availability</a>
+      </div>
+    </nav>
+
+    <main class="hero container">
+      <section class="hero-copy">
+        <span class="eyebrow">FRESHLY LISTED · HOMELY FEELING</span>
+
+        <h1>Good food feels<br><em>like home.</em></h1>
+
+        <p>
+          See what's available today, explore your favourites, and find your
+          next homely meal — all in one simple place.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="pages/phase2/index.html">Today's Availability <span>→</span></a>
+          <a class="btn btn-light" href="categories.html">Menu<span></span></a>
+        
+        </div>
+
+        <div class="hero-note" id="statusNote">
+  <span class="status-dot" id="statusDot"></span>
+  <span>
+    <strong id="statusText">Checking status...</strong><br>
+    <small id="statusSubtext">Please wait</small>
+  </span>
+</div>
+      </section>
+
+      <section class="hero-visual" aria-label="Food preview">
+        <div class="hero-image-wrap">
+          <img
+            src="e-homely-home-hero.png"
+            alt="Homely meal served on a table">
+        </div>
+      </section>
+    </main>
+  </header>
+
+  <div class="toast" id="toast" role="status">This will be updated soon.</div>
+
+
+  <script src="js/navigation.js"></script>
+  <script src="js/status.js"></script>
+</body>
+</html>
