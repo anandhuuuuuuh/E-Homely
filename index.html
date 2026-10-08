@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="E-Homely — Homely food, near you.">
+  <title>E-Homely | Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/home.css">
+  </head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+<div class="scroll-dots" id="scrollDots" aria-hidden="true">
+  <span class="active" data-dot="0"></span>
+  <span data-dot="1"></span>
+</div>
+
+<!-- ============= PHASE 1 : HOME ============= -->
+<section class="home-section" id="home">
+  <header class="site-header">
+    <nav class="navbar container">
+      <a class="brand" href="#home">
+        <span class="brand-logo">
+          <img src="assets/images/ChatGPT Image Sep 18, 2026, 08_48_44 PM.png" alt="E-HOMELY Logo">
+        </span>
+        <span>
+          <strong>E-HOMELY</strong>
+          <small>Homely food, near you.</small>
+        </span>
+      </a>
+
+      <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">☰</button>
+
+      <div class="nav-links" id="navLinks">
+        <a class="active" href="#home">Home</a>
+        <a href="pages/categories.html">Menu</a>
+        <a href="#" class="coming-soon">About</a>
+        <a href="#" class="coming-soon">Contact</a>
+        <a href="#availability" class="nav-cta">Check Availability</a>
+      </div>
+    </nav>
+
+    <main class="hero container reveal" id="heroContent">
+      <section class="hero-copy">
+        <span class="eyebrow">FRESHLY LISTED · HOMELY FEELING</span>
+
+        <h1>Good food feels<br><em>like home.</em></h1>
+
+        <p>
+          See what's available today, explore your favourites, and find your
+          next homely meal — all in one simple place. Scroll down to check
+          today's availability.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#availability">Explore Availability <span>→</span></a>
+          <button class="btn btn-light" id="availabilityButton">Menu</button>
+        </div>
+
+        <div class="hero-note" id="statusNote">
+          <span class="status-dot" id="statusDot"></span>
+          <span>
+            <strong id="statusText">Checking status...</strong><br>
+            <small id="statusSubtext">Please wait</small>
+          </span>
+        </div>
+      </section>
+
+      <section class="hero-visual" aria-label="Food preview">
+        <div class="hero-image-wrap">
+          <img src="assets/images/e-homely-home-hero.png" alt="Homely meal served on a table">
+        </div>
+      </section>
+    </main>
+  </header>
+</section>
+
+<!-- ============= PHASE 2 : AVAILABILITY (now part of the same scroll) ============= -->
+<section id="availability">
+  <section class="availability-section">
+    <div class="container availability-layout">
+      <div class="availability-copy reveal">
+        <span class="eyebrow light-eyebrow">CHECK BEFORE YOU GO</span>
+        <h1>What's available<br><em>right now?</em></h1>
+        <p>Availability can change during the day. Use this section as a quick guide before heading to the foodspot.</p>
+        <div class="live-note">
+          <span class="status-dot" id="overallDot"></span>
+          <span>
+            <strong id="overallText">Checking status...</strong>
+            <small id="overallSubtext">Please wait</small>
+          </span>
+        </div>
+      </div>
+
+      <div class="availability-panel reveal-panel">
+        <div class="panel-top">
+          <div>
+            <strong>Today's status</strong>
+            <small id="updatedText">Updating automatically</small>
+          </div>
+          <span class="open-pill closed" id="overallPill"><i></i><span id="pillText">Closed</span></span>
+        </div>
+
+        <div class="category-row reveal-row" style="--stagger:.05s" data-category="breakfast">
+          <div class="category-icon">🍳</div>
+          <div class="category-info">
+            <strong>Breakfast</strong>
+            <small>7:00 AM – 11:00 AM</small>
+            <span id="breakfastMessage">Checking...</span>
+          </div>
+          <a class="category-status closed" id="breakfastStatus" href="pages/menu.html?category=breakfast" aria-label="View Breakfast menu">Closed</a>
+        </div>
+
+        <div class="category-row reveal-row" style="--stagger:.15s" data-category="lunch">
+          <div class="category-icon">🍛</div>
+          <div class="category-info">
+            <strong>Lunch</strong>
+            <small>12:00 PM – 2:30 PM</small>
+            <span id="lunchMessage">Checking...</span>
+          </div>
+          <a class="category-status closed" id="lunchStatus" href="pages/menu.html?category=lunch" aria-label="View Lunch menu">Closed</a>
+        </div>
+
+        <div class="category-row reveal-row" style="--stagger:.25s" data-category="dinner">
+          <div class="category-icon">🍽️</div>
+          <div class="category-info">
+            <strong>Dinner</strong>
+            <small>7:00 PM – 10:00 PM</small>
+            <span id="dinnerMessage">Checking...</span>
+          </div>
+          <a class="category-status closed" id="dinnerStatus" href="pages/menu.html?category=dinner" aria-label="View Dinner menu">Closed</a>
+        </div>
+
+        <div class="panel-tip" id="panelTip">Check the menu before you leave campus.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="schedule-section container">
+    <div class="section-heading reveal">
+      <span class="eyebrow">TODAY'S FOOD SLOTS</span>
+      <h2>Simple timing.<br><em>Clear availability.</em></h2>
+    </div>
+    <div class="slot-grid">
+      <article class="slot-card reveal-card" style="--stagger:.05s"><span>01</span><h3>Breakfast</h3><p>7:00 AM – 11:00 AM</p></article>
+      <article class="slot-card reveal-card" style="--stagger:.15s"><span>02</span><h3>Lunch</h3><p>12:00 PM – 2:30 PM</p></article>
+      <article class="slot-card reveal-card" style="--stagger:.25s"><span>03</span><h3>Dinner</h3><p>7:00 PM – 10:00 PM</p></article>
+    </div>
+  </section>
+</section>
+
+<div class="toast" id="toast" role="status">This will be updated soon.</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+<script src="js/chatbot.js"></script>
+<script src="js/home.js"></script>
+</body>
+</html>

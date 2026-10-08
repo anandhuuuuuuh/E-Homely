@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-HOMELY | Menu & Cart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/menu.css">
+
+
+</head>
+<body>
+<header>
+  <nav class="container nav">
+    <a class="brand" href="../index.html">
+  <span class="brand-logo">
+    <img src="../assets/images/ChatGPT Image Sep 18, 2026, 08_48_44 PM.png" alt="E-HOMELY Logo">
+  </span>
+
+  <span>
+    <strong>E-HOMELY</strong>
+    <small>Homely food, near you.</small>
+  </span>
+</a>
+    <a class="back" href="../index.html#availability">← Availability</a>
+  </nav>
+</header>
+
+<main class="container">
+  <section class="intro">
+    <span class="eyebrow">MENU · ADD TO CART</span>
+    <h1 id="heading">Today's <em>menu</em></h1>
+    <p id="description">Choose your favourite dishes and add them to your cart.</p>
+  </section>
+
+  <section class="menu-list" id="menuList"></section>
+</main>
+
+<div class="cart-bar" id="cartBar" aria-live="polite">
+  <div class="cart-summary">
+    <div><span class="cart-label">Your cart</span><strong id="cartItems">0 items</strong></div>
+    <div class="cart-total" id="cartTotal">₹0</div>
+  </div>
+  <button class="continue-cart" id="continueCart" disabled onclick="continueToCheckout()">Continue <span>→</span></button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+<script src="../js/chatbot.js"></script>
+<script src="../js/menu.js"></script>
+</body>
+</html>
