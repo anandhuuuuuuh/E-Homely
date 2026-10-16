@@ -8,6 +8,17 @@ const schedule = {
   dinner: { open: 19 * 60, close: 22 * 60, openLabel: "7:00 PM", label: "Dinner" }
 };
 
+const CART_STORAGE_KEYS = ["ehomelyCart", "eHomelyCart", "cart", "phase3Cart", "e-homely-cart", "ehomelyCartTotal"];
+const CART_BUSINESS_DATE_KEY = "ehomelyCartBusinessDate";
+const todayBusinessDate = new Date().toLocaleDateString("en-CA");
+try {
+  const savedBusinessDate = localStorage.getItem(CART_BUSINESS_DATE_KEY);
+  if (savedBusinessDate && savedBusinessDate !== todayBusinessDate) {
+    CART_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+  }
+  localStorage.setItem(CART_BUSINESS_DATE_KEY, todayBusinessDate);
+} catch (_) {}
+
 if (typeof document === "undefined") {
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -115,6 +126,13 @@ function updateAvailability() {
 
   const overallOpen = activeCategory !== null;
 
+  // Clear any saved cart whenever every food section is closed.
+  if (!overallOpen) {
+    CART_STORAGE_KEYS.forEach((key) => {
+      try { localStorage.removeItem(key); } catch (_) {}
+    });
+  }
+
   // Hero note (Phase 1)
   const statusDot = document.getElementById("statusDot");
   const statusText = document.getElementById("statusText");
@@ -189,9 +207,12 @@ function onScroll() {
   if (scrollProgress) scrollProgress.style.width = `${percent}%`;
 
   const availabilityTop = availabilitySection.getBoundingClientRect().top;
-  const inAvailability = availabilityTop <= window.innerHeight * 0.4;
+  const aboutSection = document.getElementById("about");
+  const aboutTop = aboutSection ? aboutSection.getBoundingClientRect().top : Infinity;
+  const activeDot = aboutTop <= window.innerHeight * 0.4 ? 2
+    : availabilityTop <= window.innerHeight * 0.4 ? 1 : 0;
   dots.forEach((dot) => dot.classList.remove("active"));
-  dots[inAvailability ? 1 : 0]?.classList.add("active");
+  dots[activeDot]?.classList.add("active");
 }
 
 window.addEventListener("scroll", onScroll, { passive: true });

@@ -16,6 +16,7 @@
 <div class="scroll-dots" id="scrollDots" aria-hidden="true">
   <span class="active" data-dot="0"></span>
   <span data-dot="1"></span>
+  <span data-dot="2"></span>
 </div>
 
 <!-- ============= PHASE 1 : HOME ============= -->
@@ -26,18 +27,14 @@
         <span class="brand-logo">
           <img src="assets/images/ChatGPT Image Sep 18, 2026, 08_48_44 PM.png" alt="E-HOMELY Logo">
         </span>
-        <span>
-          <strong>E-HOMELY</strong>
-          <small>Homely food, near you.</small>
-        </span>
       </a>
 
-      <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">☰</button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false"></button>
 
       <div class="nav-links" id="navLinks">
         <a class="active" href="#home">Home</a>
         <a href="pages/categories.html">Menu</a>
-        <a href="#" class="coming-soon">About</a>
+        <a href="#about">About</a>
         <a href="#" class="coming-soon">Contact</a>
         <a href="#availability" class="nav-cta">Check Availability</a>
       </div>
@@ -105,7 +102,6 @@
         </div>
 
         <div class="category-row reveal-row" style="--stagger:.05s" data-category="breakfast">
-          <div class="category-icon">🍳</div>
           <div class="category-info">
             <strong>Breakfast</strong>
             <small>7:00 AM – 11:00 AM</small>
@@ -115,7 +111,6 @@
         </div>
 
         <div class="category-row reveal-row" style="--stagger:.15s" data-category="lunch">
-          <div class="category-icon">🍛</div>
           <div class="category-info">
             <strong>Lunch</strong>
             <small>12:00 PM – 2:30 PM</small>
@@ -125,7 +120,6 @@
         </div>
 
         <div class="category-row reveal-row" style="--stagger:.25s" data-category="dinner">
-          <div class="category-icon">🍽️</div>
           <div class="category-info">
             <strong>Dinner</strong>
             <small>7:00 PM – 10:00 PM</small>
@@ -150,6 +144,32 @@
       <article class="slot-card reveal-card" style="--stagger:.25s"><span>03</span><h3>Dinner</h3><p>7:00 PM – 10:00 PM</p></article>
     </div>
   </section>
+</section>
+
+<!-- ============= ABOUT E-HOMELY ============= -->
+<section class="about-section" id="about">
+  <div class="container about-layout">
+    <div class="about-copy reveal">
+      <span class="eyebrow">ABOUT E-HOMELY</span>
+      <h2>More than just<br><em>a food order.</em></h2>
+      <p class="about-lead">Making campus food ordering easier.</p>
+      <p>E-HOMELY is a smart campus food pre-ordering platform designed to make food ordering easier, faster, and more convenient for students and faculty.</p>
+      <p>Explore available dishes, check meal timings, add favourites to your cart, and confirm orders before visiting the food counter. With meal availability updates and digital order tokens, E-HOMELY aims to reduce waiting time during busy college breaks.</p>
+      <p>Our goal is to create a smoother campus dining experience by connecting food availability with convenient digital ordering.</p>
+      <a class="btn btn-primary about-cta" href="pages/categories.html">Discover Our Menu <span>→</span></a>
+    </div>
+    <div class="about-visual reveal-panel">
+      <img src="assets/images/categories-hero-user.png" alt="A welcoming homely dining experience">
+      <div class="about-image-note"><strong>E-HOMELY</strong><span>Your Food, Your Time, Your Way.</span></div>
+    </div>
+  </div>
+  <div class="container about-values">
+    <article class="about-value reveal-card" style="--stagger:.05s"><span>01</span><h3>Our Mission</h3><p>Make campus food ordering simple and help students and faculty spend less time waiting in queues.</p></article>
+    <article class="about-value reveal-card" style="--stagger:.12s"><span>02</span><h3>What We Offer</h3><p>Browse menus, check meal availability, pre-order food, choose Eat Here or Collect, and receive a digital token.</p></article>
+    <article class="about-value reveal-card" style="--stagger:.19s"><span>03</span><h3>Why E-HOMELY?</h3><p>Convenient ordering, clear meal timings, and a more organised campus dining experience.</p></article>
+    <article class="about-value reveal-card" style="--stagger:.26s"><span>04</span><h3>Our Vision</h3><p>Make campus dining smarter, more accessible, and more efficient through simple digital solutions.</p></article>
+  </div>
+  <p class="about-tagline">E-HOMELY — Your Food, Your Time, Your Way.</p>
 </section>
 
 <div class="toast" id="toast" role="status">This will be updated soon.</div>

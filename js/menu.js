@@ -69,6 +69,18 @@ const now = new Date();
 const currentMinutes = now.getHours() * 60 + now.getMinutes();
 const slot = schedule[category] || schedule.breakfast;
 const categoryOpen = currentMinutes >= slot.open && currentMinutes < slot.close;
+const siteOpenNow = Object.values(schedule).some((hours) => currentMinutes >= hours.open && currentMinutes < hours.close);
+const CART_STORAGE_KEYS = ["ehomelyCart", "eHomelyCart", "cart", "phase3Cart", "e-homely-cart", "ehomelyCartTotal"];
+const CART_BUSINESS_DATE_KEY = "ehomelyCartBusinessDate";
+const todayBusinessDate = now.toLocaleDateString("en-CA");
+try {
+  const savedBusinessDate = localStorage.getItem(CART_BUSINESS_DATE_KEY);
+  if (savedBusinessDate && savedBusinessDate !== todayBusinessDate) {
+    CART_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+  }
+  localStorage.setItem(CART_BUSINESS_DATE_KEY, todayBusinessDate);
+  if (!siteOpenNow) CART_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+} catch (_) {}
 
 const heading = document.getElementById("heading");
 const description = document.getElementById("description");
@@ -143,7 +155,8 @@ function loadCart() {
           name: String(item.name),
           price,
           quantity,
-          category: item.category || category
+          category: item.category || category,
+          image: item.image || imageFiles[item.name] || "../assets/food/food-placeholder.jpg"
         };
       }
       return result;
@@ -156,6 +169,7 @@ function loadCart() {
 
 function saveCart() {
   const items = Object.values(cart);
+  localStorage.setItem("ehomelyCartBusinessDate", new Date().toLocaleDateString("en-CA"));
   localStorage.setItem("ehomelyCart", JSON.stringify(items));
   localStorage.setItem(
     "ehomelyCartTotal",
@@ -184,7 +198,8 @@ function addToCart(name, price, itemCategory = category) {
       name: itemName,
       price: itemPrice,
       quantity: 0,
-      category: itemCategory
+      category: itemCategory,
+      image: imageFiles[itemName] || "../assets/food/food-placeholder.jpg"
     };
   }
 
@@ -197,7 +212,7 @@ function addToCart(name, price, itemCategory = category) {
 
   if (button) {
     const originalText = button.innerHTML;
-    button.innerHTML = "Added ✓";
+    button.innerHTML = "Added ";
     button.disabled = true;
 
     window.setTimeout(() => {

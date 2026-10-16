@@ -425,7 +425,7 @@ class EhomelyChatbot {
     welcomeMsg.className = 'chat-message bot';
     welcomeMsg.innerHTML = `
       <div class="message-bubble">
-        👋 Hi! Welcome to E-Homely. How can I help you today? Ask about our menu, availability, or how to order!
+         Hi! Welcome to E-Homely. How can I help you today? Ask about our menu, availability, or how to order!
       </div>
     `;
     messages.appendChild(welcomeMsg);
@@ -467,42 +467,35 @@ class EhomelyChatbot {
   getBotResponse(userMessage) {
     const msg = userMessage.toLowerCase();
 
-    // Availability responses
     if (msg.includes('available') || msg.includes('open') || msg.includes('time')) {
-      return '📅 Right now:\n🍳 Breakfast: 7:00 AM - 11:00 AM\n🍛 Lunch: 12:00 PM - 2:30 PM\n🍽️ Dinner: 7:00 PM - 10:00 PM\n\nCheck the menu for real-time availability!';
+      return 'Current schedule:\nBreakfast: 7:00 AM - 11:00 AM\nLunch: 12:00 PM - 2:30 PM\nDinner: 7:00 PM - 10:00 PM\n\nCheck the menu for real-time availability!';
     }
 
-    // Order/Menu responses
     if (msg.includes('how to order') || msg.includes('order') || msg.includes('menu')) {
-      return '📝 Easy steps to order:\n1️⃣ Check availability\n2️⃣ Browse our Kerala menu\n3️⃣ Add items to cart\n4️⃣ Proceed to checkout\n5️⃣ Get your token\n\nLet\'s get started! 🎉';
+      return 'How to order:\n1. Check availability\n2. Browse our Kerala menu\n3. Add items to cart\n4. Proceed to checkout\n5. Get your token\n\nLet’s get started!';
     }
 
-    // Delivery/Pickup responses
-    if (msg.includes('delivery') || msg.includes('pickup') || msg.includes('pickup') || msg.includes('home')) {
-      return '🚚 We offer:\n✅ Counter pickup\n✅ In-campus delivery\n\nDelivery charges may apply based on location. See details at checkout!';
+    if (msg.includes('delivery') || msg.includes('pickup') || msg.includes('home')) {
+      return 'Available options:\n- Counter pickup\n- In-campus delivery\n\nDelivery charges may apply based on location. See details at checkout!';
     }
 
-    // Contact/Support responses
     if (msg.includes('contact') || msg.includes('support') || msg.includes('help')) {
-      return '📞 Need help?\n📧 Email: support@ehomely.in\n📱 Call: +91-XXXX-XXXX\n💬 Chat with us here!\n\nWe\'re here to help! 😊';
+      return 'Need help?\nEmail: support@ehomely.in\nCall: +91-XXXX-XXXX\nChat with us here.\n\nWe’re here to help!';
     }
 
-    // Food-related responses
     if (msg.includes('appam') || msg.includes('dosa') || msg.includes('curry') || msg.includes('food')) {
-      return '🍲 Our authentic Kerala cuisine is loved by many!\n💚 Fresh ingredients\n💚 Traditional recipes\n💚 Quick service\n\nCheck our full menu to see all options! 👉 Go to Menu';
+      return 'Our authentic Kerala cuisine is made with care.\n- Fresh ingredients\n- Traditional recipes\n- Quick service\n\nCheck our full menu to see all options.';
     }
 
-    // Price/Cost responses
     if (msg.includes('price') || msg.includes('cost') || msg.includes('expensive') || msg.includes('rupee')) {
-      return '💰 Our prices are affordable and transparent:\n✨ Most items: ₹50-150\n✨ Combos: ₹120-200\n✨ No hidden charges!\n\nSee prices in the menu. 👉 View Menu';
+      return 'Our prices are affordable and transparent:\n- Most items: ₹50-150\n- Combos: ₹120-200\n- No hidden charges!\n\nSee prices in the menu.';
     }
 
-    // Default responses
     const responses = [
-      '🤔 That\'s a great question! Could you tell me more about what you\'re looking for?',
-      '💡 You can browse our menu for more details, or ask me specific questions!',
-      '✨ Feel free to ask about our menu, availability, delivery, or how to order!',
-      '👍 Got it! Want to know about our menu items or place an order?'
+      'That’s a great question! Could you tell me more about what you’re looking for?',
+      'You can browse our menu for more details, or ask me specific questions.',
+      'Feel free to ask about our menu, availability, delivery, or how to order.',
+      'Got it! Would you like to know about our menu items or place an order?'
     ];
 
     return responses[Math.floor(Math.random() * responses.length)];

@@ -1,66 +1,146 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>E-HOMELY | Confirm Order</title>
-<link rel="stylesheet" href="../css/checkout.css">
-
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#34583d">
+  <title>E-HOMELY | Checkout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/checkout.css">
 </head>
 <body>
-<header><nav class="container nav"><a class="brand" href="../index.html"><span><strong>E-HOMELY</strong><small>Homely food, near you.</small></span></a><a class="back" href="../index.html#availability">← Availability</a></nav></header>
-<main class="container checkout">
-<section class="intro"><span class="eyebrow"> CHECKOUT</span><h1>Confirm your <em>order</em></h1><p>Review your selected dishes, choose your preference, and confirm.</p></section>
-<section class="panel"><h2>Order summary</h2><div id="orderList"></div><div class="grand"><span>Total</span><span id="grandTotal">₹0</span></div></section>
-<section class="panel"><h2>Choose your preference</h2><div class="choice-grid"><div class="choice"><input type="radio" id="dineIn" name="service" value="EAT"><label for="dineIn">🍽️ Dine In<br><small>Eat here</small></label></div><div class="choice"><input type="radio" id="takeOut" name="service" value="TAK"><label for="takeOut">🥡 Take Out<br><small>Collect your order</small></label></div></div><div class="customer-details">
-<label for="customerName">Customer Name</label>
-<input id="customerName" type="text" placeholder="Customer Name" autocomplete="name">
-<label for="customerPhone">Phone Number</label>
-<input id="customerPhone" type="tel" placeholder="9746311468" autocomplete="tel" inputmode="numeric" maxlength="10" minlength="10" pattern="[0-9]{10}" aria-describedby="phoneValidation">
-<p id="phoneValidation" class="phone-validation" role="alert" aria-live="polite"></p>
-<label for="customerNotes">Notes (Optional)</label>
-<textarea id="customerNotes" rows="2" placeholder="Any special requests?"></textarea>
-<p class="confirmation-note">ⓘ After confirming, you will receive a token number for your order.</p>
-</div>
-<button class="confirm" id="confirmBtn" disabled onclick="confirmOrder()">✓ Confirm Order →</button></section>
-</main>
-<div class="modal" id="tokenModal" role="dialog" aria-modal="true" aria-labelledby="confirmedTitle">
-  <div class="token-card">
-    <button class="modal-x" type="button" onclick="closeModal()" aria-label="Close confirmation">×</button>
-    <div class="success-orb" aria-hidden="true">✓</div>
-    <h2 id="confirmedTitle" class="confirmed-title">Order <span>Confirmed!</span></h2>
-    <h3 class="confirmed-subtitle">Thank you for choosing E-HOMELY</h3>
-    <p class="confirmed-tagline">Homely food, near you!</p>
-    <div class="coin" aria-label="Your order token">
-      <div class="coin-inner">
-        <div class="coin-brand">⌂</div>
-        <strong>E-HOMELY</strong>
-        <span class="coin-rule"></span>
-        <div class="token-id" id="tokenId">EAT-001</div>
-        <span class="coin-rule"></span>
-        <small>♨ &nbsp; Homely food, near you!</small>
+  <header class="topbar">
+    <a class="brand" href="../index.html" aria-label="E-HOMELY home">
+      <span class="brand-mark"><span>e</span></span>
+      <span class="brand-copy"><strong>E-HOMELY</strong><small>HOMELY FOOD, MADE EASY</small></span>
+    </a>
+    <div class="secure-note"><span class="lock">✓</span> Simple · Fresh · Homely</div>
+  </header>
+
+  <main class="page-shell">
+    <div class="intro">
+      <div>
+        <p class="eyebrow">YOUR MEAL, YOUR WAY</p>
+        <h1 id="pageTitle">E-HOMELY</h1>
+        <p class="intro-copy" id="pageSubtitle">A few details, then we’ll get your order ready.</p>
+      </div>
+      <div class="stepper" aria-label="Checkout progress">
+        <div class="step active" id="step1"><span>1</span><small>Checkout</small></div>
+        <i></i><div class="step" id="step2"><span>2</span><small>Confirmation</small></div>
+        <i></i><div class="step" id="step3"><span>3</span><small>Your token</small></div>
       </div>
     </div>
-    <div class="token-stats">
-      <div><span class="stat-icon">♧</span><small>Order Mode</small><strong id="orderModeText">Collect</strong></div>
-      <div><span class="stat-icon">₹</span><small>Payment</small><strong>At Counter</strong></div>
-      <div><span class="stat-icon">◷</span><small>Order Status</small><strong>Confirmed</strong></div>
-    </div>
-    <h3 class="counter-title">Show this token at the counter</h3>
-    <p class="counter-note">We'll prepare your food with care <span>♥</span></p>
-    <div class="token-actions">
-      <button class="token-action secondary" type="button" onclick="printToken()">▣ &nbsp; Print Token</button>
-      <button class="token-action primary" type="button" onclick="saveToken()">▣ &nbsp; Save to Phone</button>
-    </div>
-    <div class="thank-you">— &nbsp; T H A N K &nbsp; Y O U &nbsp; —</div>
-    <div class="timer" id="timer" aria-live="polite">20:00</div>
-  </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
-<script src="../js/chatbot.js"></script>
-<script src="../js/checkout.js"></script>
+    <section id="checkoutView">
+      <div class="checkout-grid">
+        <div class="main-column">
+          <section class="panel customer-panel">
+            <div class="panel-heading">
+              <div><h2>Who’s ordering?</h2><p>We’ll use these details for your order token.</p></div>
+            </div>
+            <form id="checkoutForm" novalidate>
+              <div class="field">
+                <label for="customerName">Full name</label>
+                <input id="customerName" name="customerName" type="text" autocomplete="name" placeholder="Your name" maxlength="70" required>
+                <small class="field-error" id="nameError"></small>
+              </div>
+              <div class="field">
+                <label for="customerPhone">Mobile number</label>
+                <div class="phone-field"><span>+91</span><input id="customerPhone" name="customerPhone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="10-digit mobile number" maxlength="10" required></div>
+                <small class="field-error" id="phoneError"></small>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel fulfilment-panel">
+            <div class="panel-heading">
+              <div><h2>How would you like it?</h2><p>Choose how you’ll receive your food.</p></div>
+            </div>
+            <div class="fulfilment-options">
+              <button class="fulfilment-card selected" type="button" data-mode="eat">
+                <span class="choice-radio"></span>
+                <span class="fulfilment-text"><strong>Eat here</strong><small>Enjoy your meal at E-HOMELY</small></span>
+                <span class="prefix-chip">EAT</span>
+              </button>
+              <button class="fulfilment-card" type="button" data-mode="collect">
+                <span class="choice-radio"></span>
+                <span class="fulfilment-text"><strong>Collect</strong><small>Pick up your order at the counter</small></span>
+                <span class="prefix-chip">TAK</span>
+              </button>
+            </div>
+            <div class="payment-note"><span class="payment-icon">₹</span><span><strong>Pay at the counter</strong><small>No online payment needed. Pay when you arrive.</small></span><span class="cash-pill">COUNTER</span></div>
+          </section>
+
+          <div class="reassurance"><span>✦</span> Freshly prepared with a little homely care.</div>
+        </div>
+
+        <aside class="panel summary-panel">
+          <div class="summary-head"><div><p class="eyebrow">THE GOOD STUFF</p><h2>Your order</h2></div><span class="item-count" id="itemCount">0 items</span></div>
+          <div id="cartItems" class="cart-items"></div>
+          <div class="empty-note" id="emptyNote" hidden>Your cart is empty. Return to the E-HOMELY order page to choose your dishes.</div>
+          <button class="text-button" type="button" id="addDemoItem">← Back to order page</button>
+          <div class="summary-rule"></div>
+          <div class="price-row"><span>Subtotal</span><strong id="subtotal">₹0</strong></div>
+          <div class="price-row muted"><span>Service fee</span><span>₹0</span></div>
+          <div class="price-row total"><span>Total to pay</span><strong id="total">₹0</strong></div>
+          <div class="summary-foot"><span class="tiny-check">✓</span><span>Payment is made at the counter after placing your order.</span></div>
+          <button class="primary-button" type="button" id="placeOrder">Confirm my order <span>→</span></button>
+          <p class="terms">By confirming, you agree to check your order details before submitting.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="confirmationView" hidden>
+      <div class="confirmation-layout">
+        <div class="success-card panel">
+          <div class="success-symbol"><span>✓</span></div>
+          <p class="eyebrow">ORDER RECEIVED</p>
+          <h2>Lovely choice.<br><em>We’ve got it.</em></h2>
+          <p class="confirm-copy">Your order has been saved in this demo. Keep your token handy and show it at the counter.</p>
+          <div class="confirm-details">
+            <div><small>ORDER TOKEN</small><strong id="confirmToken">EAT-0001</strong></div>
+            <div><small>ORDER STATUS</small><strong class="status-text" id="confirmStatus">Confirmed</strong></div>
+          </div>
+          <button class="primary-button" id="viewToken" type="button">View my token <span>→</span></button>
+          <button class="secondary-button" id="backToCheckout" type="button">Back to checkout</button>
+        </div>
+        <div class="confirmation-aside">
+          <div class="mini-summary panel"><p class="eyebrow">ORDER SUMMARY</p><div id="confirmItems"></div><div class="summary-rule"></div><div class="price-row total"><span>Total</span><strong id="confirmTotal">₹0</strong></div></div>
+          <div class="help-card"><span></span><div><strong>Made for a smoother break</strong><p>Show your token to the E-HOMELY team when you arrive.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tokenView" hidden>
+      <div class="token-layout">
+        <div class="token-intro">
+          <p class="eyebrow">KEEP THIS HANDY</p><h2>Your little piece<br>of <em>homely.</em></h2>
+          <p>Your token is ready. Save it to your phone and show it at the counter.</p>
+          <div class="timer-card"><span class="timer-icon">◷</span><div><small>PLEASE ARRIVE WITHIN</small><strong id="countdown">20:00</strong><small id="timerMessage">Your 20-minute window starts now.</small></div></div>
+          <div class="token-actions"><button class="primary-button" id="savePng" type="button">↓ Save token as PNG</button><button class="secondary-button" id="returnHome" type="button">Finish</button></div>
+          <p class="download-hint">The saved PNG includes your token details, but not the countdown timer.</p>
+        </div>
+        <div class="token-stage">
+          <div class="token-card" id="tokenCard">
+            <div class="token-topline"><span class="token-brand"><img class="mini-brand-logo" src="../assets/images/Ehomely.png" alt="E-HOMELY logo"> E-HOMELY</span><span class="token-tag" id="tokenModeLabel">EAT HERE</span></div>
+            <div class="token-coin-wrap"><div class="token-coin"><img src="../assets/images/Ehomely.png" alt="E-HOMELY logo"></div></div>
+            <p class="token-caption">YOUR ORDER TOKEN</p>
+            <h3 id="tokenNumber">EAT-0001</h3>
+            <div class="token-dash"></div>
+            <div class="token-meta"><div><small>ORDER FOR</small><strong id="tokenCustomer">Guest</strong></div><div><small>STATUS</small><strong class="token-status" id="tokenStatus">Confirmed</strong></div></div>
+            <div class="token-items" id="tokenItems"></div>
+            <div class="token-total"><span>TOTAL</span><strong id="tokenTotal">₹0</strong></div>
+            <div class="token-footer"><span>GOOD FOOD · GOOD COMPANY</span><span id="tokenDate"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site-footer"><a class="footer-brand" href="../index.html">E-HOMELY</a><span>Homely food, near you.</span><span>Made with care <b>✦</b></span></footer>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="../js/checkout.js"></script>
 </body>
 </html>
