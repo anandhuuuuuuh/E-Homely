@@ -1,0 +1,101 @@
+/* =====================================================================
+   Staff pages (orders and menu stock). Loaded after style.css.
+   Buttons never wrap into uneven rows: on phones they sit in equal-width
+   columns, and every button is at least 44px tall so it is easy to tap.
+   ===================================================================== */
+
+/* ---------- Orders page ---------- */
+.order {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #fff;                 /* new and sold-out orders colour it inline */
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.order .info { flex: 1 1 240px; min-width: 0; overflow-wrap: anywhere; }
+.order .actions { flex: 0 1 auto; display: flex; flex-wrap: wrap; gap: 8px; }
+.order .flow, .order .exc { display: flex; gap: 8px; }
+
+.order .actions button {
+  white-space: nowrap;
+  min-height: 44px;
+  padding: 10px 16px;
+  font-size: 15px;
+}
+
+/* Phones: info on top, buttons below in two tidy rows. */
+@media (max-width: 600px) {
+  .order { flex-direction: column; align-items: stretch; }
+  .order .info { flex: none; }
+  .order .actions { display: grid; gap: 8px; }
+  .order .flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .order .exc  { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .order .actions button { width: 100%; padding: 10px 6px; font-size: 14px; }
+}
+@media (max-width: 340px) {
+  .order .actions button { font-size: 13px; }
+}
+
+
+/* ---------- Menu stock page ---------- */
+.stockrow { flex-wrap: nowrap; align-items: center; }
+.stockrow .info { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.stockrow .stockbtn { flex: none; }
+.stockrow button {
+  white-space: nowrap;
+  min-height: 44px;
+  min-width: 120px;
+  padding: 10px 16px;
+}
+@media (max-width: 480px) {
+  .stockrow button { min-width: 108px; padding: 10px 12px; font-size: 14px; }
+}
+
+/* ---------- Menu stock: Breakfast / Lunch / Dinner tabs ---------- */
+.mtabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  position: sticky;
+  top: var(--hdr);
+  z-index: 10;
+  background: var(--mist);
+  padding: 8px 0;
+}
+.mtabs button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 6px 4px;
+  line-height: 1.15;
+  white-space: nowrap;
+  background: transparent;
+  color: var(--leaf);
+  border: 2px solid var(--leaf);
+}
+.mtabs button b { font-size: 15px; }
+.mtabs button small { font-size: 11px; font-weight: 700; opacity: .85; }
+.mtabs button:not(.on):hover { background: #e6efe2; }
+.mtabs button.on { background: var(--leaf); color: #fff; }
+.mtabs button.cur b::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--haldi);
+  vertical-align: middle;
+}
+@media (max-width: 340px) {
+  .mtabs { gap: 4px; }
+  .mtabs button b { font-size: 13px; }
+  .mtabs button small { font-size: 10px; }
+}

@@ -1,0 +1,31 @@
+{% extends 'orders/base.html' %}
+{% block title %}{{ meal.label }} menu - E-Homely{% endblock %}
+{% block extra_head %}<style>
+:root{--R:min(46vw,34vh,190px)}
+.mt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 14px}
+.mt a{text-align:center;padding:10px 4px;border:1.5px solid var(--line);border-radius:999px;background:#fff;color:var(--muted);font-weight:700;font-size:14px;text-decoration:none;transition:all .2s}
+.mt a.on{background:var(--spice);border-color:var(--spice);color:#fff;box-shadow:var(--shadow-btn)}
+.mt a:hover:not(.on){background:var(--mist);color:var(--ink);border-color:var(--ink)}
+.pn{margin:0 0 10px;padding-right:calc(var(--R) + 6px);font-size:14px;color:var(--muted)}.pn b{color:var(--ink)}
+/* just tall enough for the wheel to fit; a full-screen min-height left a big blank gap above the footer */
+.pstage{min-height:calc(var(--R)*2 + 24px)}
+main{padding-bottom:24px}   /* default 110px was reserved for a cart bar that this page does not have */
+.site-footer .copy{padding-right:84px}   /* keep the chat button off the footer text */
+.pstage .wlist{width:calc(100vw - var(--R) - 40px);padding:14px;position:sticky;top:calc(var(--hdr) + 8px);
+  max-height:calc(100svh - var(--hdr) - 24px);overflow:auto}
+</style>{% endblock %}
+{% block content %}
+<nav class="mt" aria-label="Meals">
+  {% for m in meals %}<a href="{% url 'meal_menu' m.key %}"{% if m.key == meal.key %} class="on" aria-current="page"{% endif %}>{{ m.label }}</a>{% endfor %}
+</nav>
+<p class="pn"><b>{{ meal.start_label }} to {{ meal.end_label }}</b> &middot; {{ state_label }}</p>
+{% if not accepting %}
+  <p class="closed pn">We are not taking pre-orders right now. Please check back soon.</p>
+{% elif not serving %}
+  <p class="closed pn">You can spin through the menu, but {{ meal.label|lower }} can only be ordered between {{ meal.start_label }} and {{ meal.end_label }}.</p>
+{% endif %}
+<div class="pstage">
+  <script>window.WHEEL_TAPFOCUS = true;</script>
+{% include 'orders/_wheel.html' %}
+</div>
+{% endblock %}

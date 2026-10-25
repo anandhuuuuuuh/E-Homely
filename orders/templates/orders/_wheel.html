@@ -1,0 +1,194 @@
+{% load static %}
+{% url 'checkout' as checkout_url %}{% url 'stock_json' as stock_url %}
+{# Shared by the phone and laptop menu pages: a half "lazy Susan" wheel on the right + the list of chosen dishes. #}
+<style>
+@property --rot{syntax:'<angle>';inherits:true;initial-value:180deg}
+.wheel{--ring:calc(var(--R)*.74);--d:max(48px,calc(var(--R)*.25));--rot:180deg;position:fixed;right:calc(var(--R)*-1);
+  /* --wheel-top is updated by JS on scroll; clamp keeps the wheel from clipping the top or bottom */
+  top:clamp(calc(var(--R) + 8px), var(--wheel-top,50vh), calc(100vh - var(--R) - 8px));
+  width:calc(var(--R)*2);height:calc(var(--R)*2);margin-top:calc(var(--R)*-1);z-index:20;touch-action:none;user-select:none;-webkit-user-select:none;
+  transition:--rot .4s cubic-bezier(.2,.8,.2,1), top .18s ease}
+.wheel.intro{transition-duration:1s}.wheel.drag{transition:none}
+.wboard{position:absolute;inset:0;border-radius:50%;border:3px solid var(--ink);background:var(--sage);box-shadow:inset 0 0 0 9px var(--paper),-5px 5px 0 var(--ink)}
+.wboard::after{content:'';position:absolute;left:50%;top:50%;width:calc(var(--ring)*2);height:calc(var(--ring)*2);transform:translate(-50%,-50%);border:2px dashed #b3bf9a;border-radius:50%}
+.whub{position:absolute;left:50%;top:50%;width:128px;height:128px;margin:-64px;border-radius:50%;background:var(--ink)}
+.wptr{position:absolute;left:-20px;top:50%;margin-top:-11px;border:11px solid transparent;border-left:16px solid var(--spice);border-right:0}
+.wnav{position:absolute;left:calc(50% - 46px);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:4}
+.wnav button{width:40px;height:40px;padding:0;border-radius:50%;background:var(--apricot);color:var(--ink);font-size:14px;box-shadow:none}
+.wi{--t:rotate(calc(var(--rot) + var(--a))) translateX(var(--ring)) rotate(calc(-1*(var(--rot) + var(--a))));
+  position:absolute;left:50%;top:50%;width:var(--d);height:var(--d);margin:calc(var(--d)/-2);padding:0;border-radius:50%;
+  border:2px solid var(--ink);background:var(--paper);box-shadow:none;transform:var(--t);cursor:pointer;
+  display:grid;place-items:center;font:800 calc(var(--d)*.45) var(--display);color:var(--spice)}
+.wi:hover,.wi:active{transform:var(--t);box-shadow:none}
+.wi img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover}
+.wl{position:absolute;top:calc(100% + 5px);left:50%;transform:translateX(-50%);width:calc(var(--d)*1.9);text-align:center;pointer-events:none;
+  font:700 13px/1.15 var(--body);color:var(--ink);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.wq{position:absolute;right:-6px;top:-6px;min-width:22px;height:22px;padding:0 5px;border-radius:11px;border:2px solid var(--ink);
+  background:var(--leafg);color:#fff;font:800 12px var(--body);display:none;place-items:center}
+.wi.in .wq{display:grid}
+.wi.f{border-color:var(--spice);box-shadow:0 0 0 4px var(--apricot);z-index:3}.wi.f .wl{font-weight:800}
+.wi.sold{filter:grayscale(1);opacity:.45;cursor:not-allowed}
+@media(max-width:700px){.wl{display:none}.wi.f .wl{display:-webkit-box;width:max-content;max-width:140px;padding:3px 7px;border-radius:8px;background:var(--ink);color:#fff}}
+
+.wlist{padding:20px;border:2px solid var(--ink);border-radius:16px;background:var(--paper);box-shadow:var(--pop)}
+.wlist h2{margin:0 0 4px}
+.wmsg{min-height:20px;margin:4px 0 0;color:var(--chilli);font-weight:700;font-size:14px}
+.li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.li b{display:block;line-height:1.25}.li small{color:var(--muted)}
+.li.hit{animation:hit .6s}@keyframes hit{from{background:var(--apricot)}}
+.lq{display:flex;align-items:center;gap:6px}
+.lq button{width:34px;height:34px;padding:0;border-radius:50%;background:#fff;color:var(--spice);font-size:20px;line-height:1;box-shadow:none}
+.lq span{min-width:24px;text-align:center;font-weight:800}
+.lt{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 12px}.lt b{font:800 22px var(--display)}
+.wgo{display:block;text-align:center}.wgo.off{opacity:.4;pointer-events:none}
+.wempty{margin:10px 0;color:var(--muted)}
+@media(max-width:700px){.li{grid-template-columns:1fr}}
+</style>
+
+<aside class="wlist" id="wlist">
+  <div class="t-brand-wrap" style="margin-bottom:8px">
+    <img class="token-logo" src="{% static 'orders/logo.svg' %}" alt="E-Homely" width="28" height="28">
+    <span class="t-brand">YOUR DISHES</span>
+  </div>
+  <p class="fine">Tap a dish on the wheel, then choose how many.</p>
+  <p class="wmsg" id="wmsg" role="status"></p>
+  <div id="wlines"></div>
+  <div class="lt"><span>Total</span><b id="wtotal">&#8377;0</b></div>
+  <a class="btn wgo off" id="wgo" href="{{ checkout_url }}">Go to checkout</a>
+</aside>
+
+<div class="wheel" id="wheel" aria-label="Dish wheel: drag, scroll or use the arrows to spin">
+  <div class="wboard"></div><div class="whub"></div><div class="wptr"></div>
+  {% for d in dishes %}
+  <button type="button" class="wi{% if not d.is_available %} sold{% endif %}" data-id="{{ d.id }}" data-name="{{ d.name }}" data-price="{{ d.price|stringformat:'s' }}" aria-label="Add {{ d.name }}">
+    {% if d.image %}<img src="{{ d.image.url }}" alt="" draggable="false">{% else %}{{ d.name|slice:':1' }}{% endif %}
+    <i class="wq"></i><span class="wl">{{ d.name }}</span>
+  </button>
+  {% endfor %}
+  <div class="wnav"><button type="button" id="wup" aria-label="Previous dish">&#9650;</button><button type="button" id="wdn" aria-label="Next dish">&#9660;</button></div>
+</div>
+
+<script>
+(() => {
+  const CAN = {{ serving|yesno:"true,false" }} && {{ accepting|yesno:"true,false" }};
+  const $ = id => document.getElementById(id);
+  const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+  const money = n => (Math.round(n * 100) / 100).toFixed(2).replace(/\.00$/, '');
+  let cart = JSON.parse(localStorage.getItem('cart') || '{}');   // same key checkout reads
+  const save = () => localStorage.setItem('cart', JSON.stringify(cart));
+  const wheel = $('wheel'), items = [...wheel.querySelectorAll('.wi')];
+  const N = Math.max(items.length, 10), step = 360 / N, info = {};
+  let rot = 180, hit = null, mt, wt = 0;
+  items.forEach((el, i) => {
+    el.style.setProperty('--a', (-i * step) + 'deg');
+    info[el.dataset.id] = {name: el.dataset.name, price: +el.dataset.price, ok: !el.classList.contains('sold')};
+  });
+  const msg = t => { $('wmsg').textContent = t; clearTimeout(mt); mt = setTimeout(() => { $('wmsg').textContent = ''; }, 2200); };
+
+  function chg(id, d) {
+    const i = info[id];
+    if (d > 0 && (!CAN || !i || !i.ok)) { msg(CAN ? 'That dish is sold out.' : 'Not being served right now.'); return; }
+    const q = Math.min(20, Math.max(0, (cart[id] || 0) + d));
+    q ? cart[id] = q : delete cart[id];
+    hit = id; save(); show();
+  }
+
+  function show() {
+    const ids = Object.keys(cart).filter(id => info[id]);
+    let total = 0;
+    $('wlines').innerHTML = ids.map(id => {
+      const s = info[id].price * cart[id]; total += s;
+      return `<div class="li${id == hit ? ' hit' : ''}"><div><b>${esc(info[id].name)}</b><small>&#8377;${money(info[id].price)} each, &#8377;${money(s)} total</small></div>` +
+        `<div class="lq"><button type="button" data-id="${id}" data-d="-1" aria-label="One less">-</button><span>${cart[id]}</span><button type="button" data-id="${id}" data-d="1" aria-label="One more">+</button></div></div>`;
+    }).join('') || '<p class="wempty">Nothing yet. Tap a dish on the wheel.</p>';
+    hit = null;
+    items.forEach(el => { const q = cart[el.dataset.id] || 0; el.classList.toggle('in', q > 0); el.querySelector('.wq').textContent = q; });
+    $('wtotal').innerHTML = '&#8377;' + money(total);
+    $('wgo').classList.toggle('off', !ids.length);
+    paintCount();
+  }
+
+  // ----- the wheel -----
+  function focusMark() {
+    items.forEach((el, i) => { const d = ((rot - i * step - 180) % 360 + 540) % 360 - 180; el.classList.toggle('f', Math.abs(d) < step / 2); });
+  }
+  function setRot(v, anim) {
+    rot = v; wheel.classList.toggle('drag', !anim);
+    wheel.style.setProperty('--rot', rot + 'deg'); focusMark();
+  }
+  const slot = () => Math.round((rot - 180) / step);
+  const snap = () => setRot(180 + slot() * step, true);
+  const toFocus = i => { const b = 180 + i * step; return b + 360 * Math.round((rot - b) / 360); };
+  function tap(el) {
+    if (window.WHEEL_TAPFOCUS) setRot(toFocus(items.indexOf(el)), true);   // phone: spin the dish to the pointer so you see its name
+    chg(el.dataset.id, 1);
+  }
+
+  const ang = e => { const r = wheel.getBoundingClientRect(); return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180 / Math.PI; };
+  let dragging = false, moved = 0, sx = 0, sy = 0, last = 0, just = false;
+  wheel.addEventListener('pointerdown', e => {
+    if (e.target.closest('.wnav')) return;
+    dragging = true; moved = 0; sx = e.clientX; sy = e.clientY; last = ang(e);
+  });
+  wheel.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    moved = Math.max(moved, Math.hypot(e.clientX - sx, e.clientY - sy));
+    if (moved < 8) return;
+    if (!wheel.hasPointerCapture(e.pointerId)) wheel.setPointerCapture(e.pointerId);
+    const a = ang(e); let d = a - last;
+    if (d > 180) d -= 360; if (d < -180) d += 360;
+    last = a; setRot(rot + d, false);
+  });
+  const up = () => { if (!dragging) return; dragging = false; if (moved >= 8) { just = true; setTimeout(() => { just = false; }, 60); snap(); } };
+  wheel.addEventListener('pointerup', up); wheel.addEventListener('pointercancel', up);
+  wheel.addEventListener('click', e => { if (just) return; const w = e.target.closest('.wi'); if (w) tap(w); });
+  wheel.addEventListener('wheel', e => {
+    e.preventDefault();
+    const t = Date.now(); if (t - wt < 140) return; wt = t;
+    setRot(180 + (slot() + Math.sign(e.deltaY)) * step, true);
+  }, {passive: false});
+  $('wup').addEventListener('click', () => setRot(180 + (slot() - 1) * step, true));
+  $('wdn').addEventListener('click', () => setRot(180 + (slot() + 1) * step, true));
+  $('wlines').addEventListener('click', e => { const b = e.target.closest('button'); if (b) chg(b.dataset.id, +b.dataset.d); });
+
+  async function stock() {
+    try {
+      const data = await (await fetch('{{ stock_url }}')).json();
+      data.dishes.forEach(d => {
+        info[d.id] = {name: d.name, price: +d.price, ok: d.available};
+        const el = items.find(x => x.dataset.id == d.id);
+        if (el) el.classList.toggle('sold', !d.available);
+        if (!d.available) delete cart[d.id];
+      });
+      save(); show();
+    } catch (e) {}
+  }
+
+  // Coming back with the Back button: re-read the cart so the list is never stale.
+  window.addEventListener('pageshow', e => { if (e.persisted) { cart = JSON.parse(localStorage.getItem('cart') || '{}'); show(); } });
+
+  // ---- Keep wheel vertically centred on the visible wlist, but clamp so it
+  //      never overflows the viewport top or bottom when scrolled far down. ----
+  function posWheel() {
+    const R = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--R')) || 190;
+    const list = document.getElementById('wlist');
+    if (!list) { wheel.style.removeProperty('--wheel-top'); return; }
+    const rect = list.getBoundingClientRect();
+    // Centre of the visible slice of the list, clamped inside the viewport
+    const visTop    = Math.max(rect.top, 0);
+    const visBottom = Math.min(rect.bottom, window.innerHeight);
+    const centre    = visTop + (visBottom - visTop) / 2;
+    // Express as a px value; CSS clamp handles the min/max guardrails
+    wheel.style.setProperty('--wheel-top', centre + 'px');
+  }
+  posWheel();
+  window.addEventListener('scroll', posWheel, {passive: true});
+  window.addEventListener('resize', posWheel, {passive: true});
+
+  setRot(40, false); show();
+  wheel.classList.add('intro');   // the wheel spins into place once
+  requestAnimationFrame(() => requestAnimationFrame(() => setRot(180, true)));
+  setTimeout(() => wheel.classList.remove('intro'), 1100);
+  stock(); setInterval(stock, 8000);
+})();
+</script>

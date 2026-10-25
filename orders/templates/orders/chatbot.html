@@ -1,0 +1,34 @@
+{% extends 'orders/desktop/base.html' %}
+{% load static %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'orders/chatbot.css' %}">
+{% endblock %}
+
+{% block title %}Chat Bot{% endblock %}
+
+{% block content %}
+<div class="chatbot-container" style="display:flex; flex-direction:column; align-items:center; gap:1rem; padding:2rem;">
+  <img src="{% static 'orders/butler_avatar.png' %}" alt="Butler Avatar" class="butler-avatar">
+  <h2>What’s available now?</h2>
+  <ul id="available-items" style="list-style:none; padding:0; max-width:600px; width:100%;"></ul>
+</div>
+<script>
+// Fetch stock data and render available items
+fetch('{% url "stock_json" %}')
+  .then(r => r.json())
+  .then(data => {
+    const list = document.getElementById('available-items');
+    data.dishes.filter(d => d.available).forEach(d => {
+      const li = document.createElement('li');
+      li.textContent = `${d.name} – Rs ${d.price}`;
+      li.style.padding = '0.5rem 1rem';
+      li.style.borderBottom = '1px solid #eee';
+      list.appendChild(li);
+    });
+    if (list.children.length === 0) {
+      list.innerHTML = '<li>No items in stock right now.</li>';
+    }
+  })
+  .catch(err => console.error('Error loading stock:', err));
+</script>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'orders/base.html' %}
+{% load static %}
+{% block title %}Menu stock{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'orders/staff.css' %}">{% endblock %}
+{% block content %}
+{% csrf_token %}
+<div class="t-brand-wrap" style="margin-bottom:8px">
+  <img class="brand-logo" src="{% static 'orders/logo.svg' %}" alt="E-Homely" width="34" height="34">
+  <span class="t-brand">KITCHEN DASHBOARD</span>
+</div>
+<p style="margin:6px 0 16px"><a href='/staff/'>Orders</a> | <strong>Menu stock</strong></p>
+<h1>Menu stock</h1>
+<p class='fine'>Tap a button to mark a dish sold out or back in stock. Students see the change within a few seconds. The dot marks the current meal.</p>
+
+<nav class='mtabs' aria-label='Meals'>
+  {% for m in meals %}
+    <button type='button' data-meal='{{ m.key }}' class='{% if m.key == current_meal %}cur{% endif %}'>
+      <b>{{ m.label }}</b><small></small>
+    </button>
+  {% endfor %}
+</nav>
+
+<div id='list'></div>
+
+<script>
+  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+  let active = '{{ current_meal }}';
+  let dishes = [];
+
+  function paintTabs() {
+    document.querySelectorAll('.mtabs button').forEach(b => {
+      const k = b.dataset.meal;
+      b.classList.toggle('on', k === active);
+      const out = dishes.filter(d => d.meal === k && !d.available).length;
+      b.querySelector('small').textContent = out ? `${out} sold out` : 'All in stock';
+    });
+  }
+
+  function paintList() {
+    let html = '';
+    let lastCat = null;
+    dishes.filter(d => d.meal === active).forEach(d => {
+      if (d.category !== lastCat) {
+        html += `<h2>${esc(d.category)}</h2>`;
+        lastCat = d.category;
+      }
+      const status = d.available
+        ? '<small>In stock</small>'
+        : "<small style='color:#b00020;font-weight:700'>Sold out</small>";
+      const label = d.available ? 'Mark sold out' : 'Back in stock';
+      html += `<div class='row stockrow'>
+        <div class='info'><strong>${esc(d.name)}</strong> - ${esc(d.price)} ${status}</div>
+        <div class='stockbtn'><button data-id='${d.id}' data-av='${d.available ? 0 : 1}'>${label}</button></div>
+      </div>`;
+    });
+    document.getElementById('list').innerHTML = html || '<p>No dishes here yet. Add some in the admin.</p>';
+  }
+
+  async function load() {
+    try {
+      const res = await fetch('/stock/');
+      dishes = (await res.json()).dishes;
+      paintTabs();
+      paintList();
+    } catch (e) {}
+  }
+
+  document.querySelector('.mtabs').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    active = b.dataset.meal;
+    paintTabs();
+    paintList();
+  });
+
+  document.getElementById('list').addEventListener('click', async e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    b.disabled = true;
+    await fetch(`/staff/api/dishes/${b.dataset.id}/stock/`, {
+      method: 'POST',
+      headers: {'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded'},
+      body: 'available=' + b.dataset.av,
+    });
+    load();
+  });
+
+  load();
+</script>
+{% endblock %}

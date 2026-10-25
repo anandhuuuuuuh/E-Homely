@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <radialGradient id="fBg" cx="50%" cy="46%" r="52%">
+      <stop offset="0%" stop-color="#FFFDF9"/>
+      <stop offset="100%" stop-color="#F2E9D8"/>
+    </radialGradient>
+    <linearGradient id="fGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E4731"/>
+      <stop offset="100%" stop-color="#102D1E"/>
+    </linearGradient>
+    <linearGradient id="fGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F6D57F"/>
+      <stop offset="100%" stop-color="#B88A2B"/>
+    </linearGradient>
+    <linearGradient id="fWood" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#B86A3E"/>
+      <stop offset="100%" stop-color="#7B3A18"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="60" fill="url(#fBg)" stroke="url(#fGold)" stroke-width="2.5"/>
+  <!-- Roof and chimney -->
+  <path d="M 24,62 L 64,28 L 86,45 V 36 H 94 V 51 L 104,62"
+        fill="none" stroke="url(#fGreen)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Window -->
+  <g transform="translate(42, 48)">
+    <rect x="0" y="0" width="5" height="5" rx="1" fill="url(#fWood)"/>
+    <rect x="7" y="0" width="5" height="5" rx="1" fill="url(#fWood)"/>
+    <rect x="0" y="7" width="5" height="5" rx="1" fill="url(#fWood)"/>
+    <rect x="7" y="7" width="5" height="5" rx="1" fill="url(#fWood)"/>
+  </g>
+  <!-- Text: ഹോംലി -->
+  <text x="64" y="85"
+        font-family="'Nirmala UI', 'Kartika', sans-serif"
+        font-size="25"
+        font-weight="900"
+        fill="url(#fGreen)"
+        text-anchor="middle">ഹോംലി</text>
+  <!-- Base branch -->
+  <path d="M 30,102 Q 64,94 98,102" fill="none" stroke="url(#fWood)" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="48" cy="100" r="3" fill="#4B7230"/>
+  <circle cx="64" cy="98" r="3.2" fill="#4B7230"/>
+  <circle cx="80" cy="100" r="3" fill="#4B7230"/>
+</svg>

@@ -1,0 +1,14 @@
+{% extends 'orders/base.html' %}
+{% block title %}Location - E-Homely{% endblock %}
+{% block extra_head %}{% endblock %}
+{% block bodyclass %}location{% endblock %}
+
+{% block content %}
+<div class="location-page">
+  <h1>Our Location</h1>
+  <p>Campus Gate, Main Road</p>
+  <div class="map-container">
+    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d..." width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+  </div>
+</div>
+{% endblock %}

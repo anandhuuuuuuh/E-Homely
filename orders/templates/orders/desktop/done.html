@@ -1,0 +1,79 @@
+{% extends 'orders/desktop/base.html' %}
+{% load static %}
+{% block title %}Your token | E-Homely{% endblock %}
+{% block content %}
+{% url 'order_status' order.pk as status_url %}
+{% url 'cancel_order' order.pk as cancel_url %}
+<div class="wrap token-layout">
+  <div class="token-intro">
+    <span class="eyebrow">Keep this handy</span>
+    <h1>Your little piece of <em>homely.</em></h1>
+    <p>Your advance is paid and your token is ready. Show it at the counter whenever you arrive. It does not expire.</p>
+    <div class="status-card">
+      <small>ORDER STATUS</small>
+      <strong id="status">{{ order.get_status_display }}</strong>
+      <p id="msg"></p>
+    </div>
+    <form id="cancel-form" method="post" action="{{ cancel_url }}" style="margin-top:18px;max-width:320px"
+          onsubmit='return confirm("Cancel this order? Ask at the counter about your advance.")' {% if not can_cancel %}hidden{% endif %}>
+      {% csrf_token %}
+      <button class="btn btn-light btn-block" type="submit" style="color:#a53c38">Cancel order</button>
+    </form>
+    <p style="margin-top:14px"><a class="btn btn-light" href="{% url 'menu' %}">Back to meals</a></p>
+  </div>
+
+  <div class="token-card">
+    <div class="t-top">
+      <div class="t-brand-wrap">
+        <img class="token-logo" src="{% static 'orders/logo.svg' %}" alt="E-Homely" width="30" height="30">
+        <span class="t-brand">E-HOMELY</span>
+      </div>
+      <span class="t-tag">PICKUP TOKEN</span>
+    </div>
+    <p class="t-cap">YOUR ORDER TOKEN</p>
+    <div class="t-no">{{ order.order_no }}</div>
+    <div class="t-dash"></div>
+    <div class="t-meta">
+      <div><small>ORDER FOR</small><strong>{{ order.name }}</strong></div>
+      <div><small>PAID ONLINE</small><strong>{{ order.advance_amount }}</strong></div>
+    </div>
+    <div class="t-items">
+      {% for i in items %}<div class="t-item"><span>{{ i.quantity }} x {{ i.dish.name }}</span><strong>{{ i.price }}</strong></div>{% endfor %}
+    </div>
+    <div class="t-sum">
+      <div><span>Total</span><strong>{{ order.total }}</strong></div>
+      <div class="due"><span>PAY AT COUNTER</span><strong>{{ order.balance }}</strong></div>
+    </div>
+    <div class="t-foot">GOOD FOOD · GOOD COMPANY · NO EXPIRY</div>
+  </div>
+</div>
+
+<script>
+  localStorage.removeItem('cart');
+  let status = '{{ order.status }}';
+  const messages = {
+    out_of_stock: 'Sorry, something in your order is sold out. Please ask at the counter to swap it or refund the advance.',
+    ready: 'Your order is ready. Please collect it from the counter.',
+    cancelled: 'This order was cancelled. Ask at the counter about your advance.',
+    picked_up: 'Collected. Enjoy your meal!',
+  };
+  function keepToken() {
+    try {
+      if (status === 'picked_up' || status === 'cancelled') localStorage.removeItem('tokenUrl');
+      else localStorage.setItem('tokenUrl', '{{ request.path }}');
+    } catch (e) {}
+  }
+  keepToken();
+  async function refresh() {
+    try {
+      const data = await (await fetch('{{ status_url }}')).json();
+      status = data.status;
+      document.getElementById('status').textContent = data.label;
+      document.getElementById('msg').textContent = messages[data.status] || '';
+      document.getElementById('cancel-form').hidden = !data.can_cancel;
+      keepToken();
+    } catch (e) {}
+  }
+  refresh(); setInterval(refresh, 5000);
+</script>
+{% endblock %}

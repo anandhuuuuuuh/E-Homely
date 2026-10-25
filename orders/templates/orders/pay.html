@@ -1,0 +1,38 @@
+{% extends 'orders/base.html' %}
+{% load static %}
+{% block title %}Pay advance - E-Homely{% endblock %}
+{% block content %}
+<div class="t-brand-wrap" style="margin-bottom:12px">
+  <img class="token-logo" src="{% static 'orders/logo.svg' %}" alt="E-Homely" width="32" height="32">
+  <span class="t-brand">SECURE ADVANCE PAYMENT</span>
+</div>
+<h1>Pay to get your token</h1>
+{% if failed %}<p class="error">We could not confirm that payment. Please try again.</p>{% endif %}
+
+<section class="panel">
+  <ul style="padding-left:1.1em;margin-top:0">
+    {% for i in order.items.all %}<li>{{ i.quantity }} x {{ i.dish.name }}</li>{% endfor %}
+  </ul>
+  <div class="line" style="border:0"><span class="grow">Total</span><strong>{{ order.total }}</strong></div>
+  <div class="line" style="border:0"><span class="grow">Pay now ({{ order.advance_percent }}%)</span><strong>{{ order.advance_amount }}</strong></div>
+  <div class="line" style="border:0"><span class="grow">Pay at counter</span><strong>{{ order.balance }}</strong></div>
+</section>
+
+<p id="paymsg" class="error"></p>
+
+{% if demo %}
+  <p class="closed">Test mode: Razorpay keys are not set, so no real money moves.</p>
+  <form method="post" action="{% url 'payment_demo' order.pk %}">
+    {% csrf_token %}
+    <button type="submit">Simulate payment of {{ order.advance_amount }}</button>
+  </form>
+{% else %}
+  <button id="paybtn" type="button">Pay {{ order.advance_amount }} now</button>
+  <p class="fine" style="margin-top:8px">Secure payment by Razorpay. Your token appears right after payment.</p>
+  <form id="verifyform" method="post" action="{% url 'payment_verify' %}" hidden>
+    {% csrf_token %}
+    <input name="razorpay_payment_id"><input name="razorpay_order_id"><input name="razorpay_signature">
+  </form>
+  {% include 'orders/_razorpay.html' with theme='#163826' %}
+{% endif %}
+{% endblock %}

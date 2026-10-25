@@ -1,0 +1,188 @@
+{% extends 'orders/desktop/base.html' %}
+{% load static %}
+{% block title %}E-Homely | Home-style Food, Ready When You Are{% endblock %}
+{% block bodyclass %}desktop-home{% endblock %}
+
+{% block content %}
+{# ==================== WEBPAGE 1: HERO & LIVE STATUS ==================== #}
+<section class="d-screen d-screen-1" id="home">
+  <img class="d-hero-bg" src="{% static 'orders/hero-desktop.png' %}" alt="">
+  <div class="wrap d-hero-grid">
+    <div class="d-hero-content">
+      <span class="eyebrow">Freshly Cooked · Home-Style Kitchen</span>
+      <h1>Good food feels <em>like home.</em></h1>
+      <p class="lead">Cooked fresh daily near campus. Order ahead, pay a small advance online, and collect hot at the
+        counter without waiting in a queue.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#meals">Choose your meal &darr;</a>
+        <div class="kitchen-badge" id="kitchenBadge">
+          <span class="badge-dot"></span>
+          <span id="kitchenBadgeText">Checking...</span>
+        </div>
+      </div>
+      <p class="hero-status-note" id="heroStatusNote"></p>
+    </div>
+  </div>
+</section>
+
+{# ==================== WEBPAGE 2: THE 3 MEALS ==================== #}
+<section class="d-screen d-screen-2" id="meals">
+  <div class="wrap d-meals-wrap">
+    <div class="d-meals-head">
+      <span class="eyebrow">Today's Schedule</span>
+      <h2>Choose your <em>meal.</em></h2>
+      <p class="lead">Browse any menu anytime. Pre-orders are accepted while that meal is being served.</p>
+    </div>
+
+    {% if not accepting %}
+    <p class="closed-note" style="margin-bottom:20px">We are not taking pre-orders right now. Please check back soon.
+    </p>
+    {% endif %}
+
+    <div class="d-meals-grid">
+      {% for m in meals %}
+      <div class="d-meal-card" id="card-{{ m.key }}">
+        <div class="d-meal-top">
+          <span class="badge" id="badge-{{ m.key }}">Checking...</span>
+          <span class="d-meal-time">{{ m.start_label }} to {{ m.end_label }}</span>
+        </div>
+        <h3>{{ m.label }}</h3>
+        <p class="d-meal-blurb">{{ m.blurb }}</p>
+        <div class="d-meal-foot">
+          <span class="d-meal-msg" id="msg-{{ m.key }}">Checking...</span>
+          <a class="btn btn-primary d-meal-btn" id="btn-{{ m.key }}" href="{% url 'meal_menu' m.key %}">View {{
+            m.label|lower }} &rarr;</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{{ meals|json_script:'meals-data' }}
+<script>
+  const meals = JSON.parse(document.getElementById('meals-data').textContent);
+  const TZ = 'Asia/Kolkata';
+  const partsFmt = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
+  function istMinutes(d) {
+    const p = {};
+    partsFmt.formatToParts(d).forEach(x => { p[x.type] = x.value; });
+    return Number(p.hour) * 60 + Number(p.minute) + Number(p.second) / 60;
+  }
+  const toMin = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  const fmt = t => { const [h, m] = t.split(':').map(Number); return (h % 12 || 12) + ':' + String(m).padStart(2, '0') + ' ' + (h >= 12 ? 'PM' : 'AM'); };
+  const dur = mins => { const t = Math.max(1, Math.round(mins)), h = Math.floor(t / 60), m = t % 60; return h ? (m ? `${h}h ${m}m` : `${h}h`) : `${m}m`; };
+
+  function tick() {
+    const now = new Date();
+    const cur = istMinutes(now);
+
+    let live = null, next = null, nextIn = Infinity, tomorrow = false;
+    meals.forEach(m => {
+      const s = toMin(m.start), e = toMin(m.end);
+      const isOpen = cur >= s && cur < e;
+      if (isOpen) live = { m, left: e - cur };
+      let d = s - cur, tm = false;
+      if (d <= 0) { d += 1440; tm = true; }
+      if (d < nextIn) { nextIn = d; next = m; tomorrow = tm; }
+
+      const card = document.getElementById('card-' + m.key);
+      if (card) {
+        card.classList.toggle('live', isOpen);
+        const badge = document.getElementById('badge-' + m.key);
+        const msg = document.getElementById('msg-' + m.key);
+        const btn = document.getElementById('btn-' + m.key);
+
+        if (isOpen) {
+          if (badge) { badge.textContent = 'Serving now'; badge.className = 'badge live'; }
+          if (msg) msg.textContent = (e - cur <= 15) ? `Closes in ${Math.ceil(e - cur)} min` : `Open until ${fmt(m.end)}`;
+          if (btn) btn.textContent = `Order ${m.label} now →`;
+        } else {
+          if (badge) { badge.textContent = 'Closed'; badge.className = 'badge'; }
+          if (msg) msg.textContent = (cur < s) ? `Opens at ${fmt(m.start)}` : `Opens tomorrow at ${fmt(m.start)}`;
+          if (btn) btn.textContent = `View ${m.label} menu →`;
+        }
+      }
+    });
+
+    const badge = document.getElementById('kitchenBadge');
+    const badgeText = document.getElementById('kitchenBadgeText');
+    const note = document.getElementById('heroStatusNote');
+    if (badge && badgeText) {
+      if (live) {
+        badge.className = 'kitchen-badge open';
+        badgeText.textContent = 'Kitchen Open';
+        if (note) note.textContent = `${live.m.label} is being served until ${fmt(live.m.end)} (${dur(live.left)} left).`;
+      } else {
+        badge.className = 'kitchen-badge closed';
+        badgeText.textContent = 'Kitchen Closed';
+        if (note) note.textContent = next ? `Next: ${next.label} ${tomorrow ? 'tomorrow at' : 'at'} ${fmt(next.start)} (in ${dur(nextIn)}).` : '';
+      }
+    }
+  }
+  tick(); setInterval(tick, 1000);
+</script>
+{% endblock %}
+
+{# ==================== WEBPAGE 3: FOOTER AS 3RD WEBPAGE ==================== #}
+{% block footer %}
+{% with phone="90740 92355" phone_intl="919074092355" address="Campus Gate, Main Road" %}
+<footer class="d-screen d-screen-3" id="contact">
+  <div class="wrap d-foot-wrap">
+    <div class="d-foot-grid">
+      <!-- Col 1: About E-Homely -->
+      <div class="d-foot-col">
+        <div class="t-brand-wrap" style="margin-bottom:12px">
+          <img class="token-logo" src="{% static 'orders/logo.svg' %}" alt="E-Homely" width="34" height="34">
+          <span class="t-brand" style="color:#FFFDF9;font-size:17px">E-HOMELY</span>
+        </div>
+        <p class="d-foot-lead">Simple, filling South Indian meals cooked the way they are made at home. Order ahead from
+          your laptop or phone, skip the counter queue, and eat well every day.</p>
+        <p class="d-foot-meta">Pay a small advance online &bull; Collect fresh with token &bull; No token expiry</p>
+      </div>
+
+      <!-- Col 2: How It Works -->
+      <div class="d-foot-col">
+        <h3 class="d-foot-title">How it works</h3>
+        <ol class="d-foot-steps">
+          <li><strong>01. Pick a meal</strong><span>Choose Breakfast, Lunch, or Dinner &amp; add your favorite
+              dishes.</span></li>
+          <li><strong>02. Pay small advance</strong><span>Pay online securely via UPI or Card for an instant pickup
+              token.</span></li>
+          <li><strong>03. Collect &amp; enjoy</strong><span>Show token at counter and pay balance when you
+              collect.</span></li>
+        </ol>
+      </div>
+
+      <!-- Col 3: Visit & Hours -->
+      <div class="d-foot-col">
+        <h3 class="d-foot-title">Visit &amp; Contact</h3>
+        <p class="d-foot-addr">{{ address }}</p>
+        <div class="d-foot-acts">
+          <a class="btn gold" title="Call" aria-label="Call" href="tel:+{{ phone_intl }}">
+            <svg class="ico" aria-hidden="true"><use href="#ico-phone"/></svg><span class="sr">Call</span>
+          </a>
+          <a class="btn loc" title="Location" aria-label="Location" href="{% url 'location' %}">
+            <svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg><span class="sr">Location</span>
+          </a>
+          <a class="btn wa" title="WhatsApp" aria-label="WhatsApp" href="https://wa.me/{{ phone_intl }}" target="_blank" rel="noopener">
+            <svg class="ico" aria-hidden="true"><use href="#ico-whatsapp"/></svg><span class="sr">WhatsApp</span>
+          </a>
+        </div>
+        <ul class="d-foot-hours">
+          {% for m in meals %}
+          <li><span>{{ m.label }}</span><strong>{{ m.start_label }} – {{ m.end_label }}</strong></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Copyright Bar -->
+    <div class="d-foot-bar">
+      <span>&copy; E-Homely · Authentic Home-Style Mess</span>
+      <a href="#home" class="d-foot-top">Back to top &uarr;</a>
+    </div>
+  </div>
+</footer>
+{% endwith %}
+{% endblock %}

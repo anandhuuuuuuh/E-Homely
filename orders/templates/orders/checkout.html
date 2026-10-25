@@ -1,0 +1,148 @@
+{% extends 'orders/base.html' %}
+{% load static %}
+{% block title %}Checkout - E-Homely{% endblock %}
+{% block extra_head %}<style>
+  .adv {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    margin: 0 0 8px;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+  }
+
+  .adv input {
+    width: auto;
+    margin: 0;
+  }
+
+  .adv:has(input:checked) {
+    border-color: var(--leaf);
+    background: #eef6ea;
+  }
+
+  .adv .amt {
+    margin-left: auto;
+    font-weight: 800;
+    color: var(--leaf);
+  }
+
+  .paysplit {
+    display: flex;
+    justify-content: space-between;
+    margin: 4px 0;
+  }
+
+  /* Highlight input text color for name and phone fields */
+  .input-highlight {
+  color: var(--ink) !important;
+}
+.input-highlight::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+</style>{% endblock %}
+{% block content %}
+<h1>Checkout</h1>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+<div class="checkout">
+  <form method="post" class="panel" id="details" action="{% url 'checkout' %}">
+    <h2 style="margin-top:0">Your details</h2>
+    {% csrf_token %}
+    <input type="hidden" name="cart" id="cart">
+    <div class="field">
+      <label for="name">Name</label>
+      <input class="input-highlight" id="name" name="name" maxlength="100" autocomplete="name"
+        value="{{ name|default:'' }}" required>
+    </div>
+    <div class="field">
+      <label for="phone">Phone number</label>
+      <input class="input-highlight" id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel"
+        maxlength="15" value="{{ phone|default:'' }}" required>
+    </div>
+
+    <div class="field">
+      <label>{% if advance_options|length > 1 %}How much to pay now?{% else %}Advance to pay now{% endif %}</label>
+      {% for p in advance_options %}
+      <label class="adv">
+        <input type="radio" name="advance" value="{{ p }}" {% if forloop.first %}checked{% endif %}>
+        <span>{{ p }}% now</span><span class="amt" data-adv="{{ p }}">-</span>
+      </label>
+      {% endfor %}
+      <p class="fine">You pay this online now (UPI, card or netbanking) to get your token. The rest is paid at the
+        counter.</p>
+    </div>
+    <button type="submit" id="send">Pay advance</button>
+  </form>
+
+  <aside class="panel summary">
+    <div class="t-brand-wrap" style="margin-bottom:12px">
+      <img class="token-logo" src="{% static 'orders/logo.svg' %}" alt="E-Homely" width="28" height="28">
+      <span class="t-brand">ORDER SUMMARY</span>
+    </div>
+    <div id="lines"></div>
+    <div class="total"><span>Total</span><span id="total">0</span></div>
+    <div class="paysplit"><span>Pay now</span><strong id="paynow">0</strong></div>
+    <div class="paysplit"><span>Pay at counter</span><strong id="paylater">0</strong></div>
+  </aside>
+</div>
+
+{{ dishes|json_script:'dishes-data' }}
+<script>
+  document.getElementById('cart').value = localStorage.getItem('cart') || '{}';
+
+  const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+  const dishes = JSON.parse(document.getElementById('dishes-data').textContent);
+  const byId = Object.fromEntries(dishes.map(d => [d.id, d]));
+  const cart = JSON.parse(localStorage.getItem('cart') || '{}');
+
+  let total = 0, html = '';
+  Object.entries(cart).forEach(([id, qty]) => {
+    const d = byId[id];
+    if (!d) return;
+    const sum = Number(d.price) * qty;
+    total += sum;
+    html += `<div class="line">
+      <div class="pic"><span class="ph">${esc(d.name.charAt(0))}</span></div>
+      <div class="grow"><strong>${esc(d.name)}</strong><br><span class="fine">${qty} x ${esc(d.price)}</span></div>
+      <strong>${sum.toFixed(2)}</strong>
+    </div>`;
+  });
+
+  const money = n => (Math.round(n * 100) / 100).toFixed(2);
+  function paint() {
+    const checked = document.querySelector('input[name=advance]:checked');
+    const pct = checked ? Number(checked.value) : 0;
+    const now = total * pct / 100;
+    document.querySelectorAll('[data-adv]').forEach(el => el.textContent = money(total * Number(el.dataset.adv) / 100));
+    document.getElementById('paynow').textContent = money(now);
+    document.getElementById('paylater').textContent = money(total - now);
+    document.getElementById('send').textContent = 'Pay ' + money(now) + ' now';
+  }
+
+  if (html) {
+    document.getElementById('lines').innerHTML = html;
+    document.getElementById('total').textContent = money(total);
+    document.querySelectorAll('input[name=advance]').forEach(r => r.addEventListener('change', paint));
+    paint();
+  } else {
+    document.getElementById('lines').innerHTML =
+      "<p>Your cart is empty.</p><a class=\"btn\" href=\"{% url 'menu' %}\">Choose your dishes</a>";
+    document.getElementById('send').disabled = true;
+  }
+</script>
+<script>
+  // Always show the current cart. A page restored by the Back button, or a cart changed in another tab, is reloaded.
+  window.addEventListener('pageshow', e => { if (e.persisted) location.replace(location.pathname); });
+  window.addEventListener('storage', e => { if (e.key === 'cart') location.replace(location.pathname); });
+  // The form always sends the latest cart, never the copy read when the page opened.
+  document.getElementById('details').addEventListener('submit', () => {
+    document.getElementById('cart').value = localStorage.getItem('cart') || '{}';
+    document.getElementById('send').disabled = true;   // one tap = one order
+  });
+</script>
+{% endblock %}

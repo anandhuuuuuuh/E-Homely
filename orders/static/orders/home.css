@@ -1,0 +1,495 @@
+/* =====================================================================
+   Home Page Mobile: Exactly 3 Webpages (Screens)
+   1: Hero & Kitchen Status
+   2: Choose Your Meal (Breakfast, Lunch, Dinner)
+   3: Footer (Concise About, 3 Steps, Hours & Contact)
+   ===================================================================== */
+
+:root {
+  --screen-h: calc(100vh - var(--hdr, 64px));
+}
+@supports (height: 100svh) {
+  :root { --screen-h: calc(100svh - var(--hdr, 64px)); }
+}
+
+html:has(body.home) {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: var(--hdr, 64px);
+}
+
+body.home {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+body.home main {
+  padding: 0 12px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ================================================================
+   WEBPAGE 1: HERO & LIVE CLOCK / KITCHEN STATUS
+   ================================================================ */
+.top {
+  height: var(--screen-h);
+  min-height: 380px;
+  max-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  scroll-snap-align: start;
+  box-sizing: border-box;
+}
+
+.hero {
+  flex: 1 1 auto;
+  min-height: 0;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  background-color: var(--forest);
+  background-image:
+    linear-gradient(135deg, rgba(22, 56, 38, 0.94) 0%, rgba(16, 40, 27, 0.96) 100%),
+    var(--hero-img, none);
+  background-size: cover;
+  background-position: center;
+  color: var(--cream);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: clamp(10px, 2vh, 18px) clamp(12px, 3vw, 20px);
+  overflow: hidden;
+}
+
+/* ---------- Hero Section (full-screen wrapper) ---------- */
+.hero-section {
+  height: var(--screen-h);
+  min-height: 380px;
+  max-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  scroll-snap-align: start;
+  box-sizing: border-box;
+}
+
+/* ---------- Hero Full (background image banner) ---------- */
+.hero-full {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  align-items: flex-start;   /* headline sits at the top so the kitchen photo stays visible */
+  border-radius: 20px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-image: var(--hero-img, none);
+  box-shadow: var(--shadow);
+}
+
+/* dark overlay so text is readable */
+.hero-full::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(12, 30, 20, 0.88) 0%,
+    rgba(12, 30, 20, 0.50) 40%,
+    rgba(12, 30, 20, 0.05) 100%
+  );
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* ---------- Hero Content (text + CTA over the image) ---------- */
+.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: clamp(18px, 4vh, 36px) clamp(16px, 4vw, 28px);
+  max-width: 100%;
+}
+
+.hero-full h2,
+.hero-content h2 {
+  color: #fff;
+  font-size: clamp(20px, 4vh, 30px);
+  line-height: 1.15;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.hero-short {
+  margin: 0 0 16px;
+  font-size: clamp(12px, 1.8vh, 15px);
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.4;
+  max-width: 36ch;
+}
+.hero-long { display: none; }
+
+.cta-wrap { margin-top: 4px; }
+.hero-full .cta,
+.hero-content .cta {
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 13px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(200, 147, 58, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.hero-full .cta:hover,
+.hero-content .cta:hover { background: #fff; color: var(--forest); }
+.cta-arrow {
+  width: 14px; height: 14px;
+  fill: none; stroke: currentColor;
+  stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* Nowbox (Live Kitchen Status) */
+.nowbox {
+  flex: 0 0 auto;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 18px;
+  padding: clamp(10px, 2vh, 16px) clamp(14px, 3.5vw, 20px);
+  box-shadow: var(--pop);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px;
+}
+
+.clock {
+  font-family: var(--body);
+  font-weight: 800;
+  font-size: clamp(22px, 3.8vh, 28px);
+  color: var(--forest);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.clockdate {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.nowtitle {
+  font-family: var(--display);
+  font-size: clamp(15px, 2.4vh, 17px);
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.nowline {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 3px 0 0;
+  line-height: 1.3;
+}
+
+/* ================================================================
+   WEBPAGE 2: CHOOSE A MEAL (SCREEN 2)
+   ================================================================ */
+.meals-screen {
+  height: var(--screen-h);
+  min-height: 380px;
+  max-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 0;
+  scroll-snap-align: start;
+  box-sizing: border-box;
+}
+
+.meals-head {
+  flex: 0 0 auto;
+  margin-bottom: 6px;
+}
+
+.meals-head h2 {
+  font-size: clamp(22px, 3.6vh, 28px);
+  margin: 0 0 2px;
+  color: var(--forest);
+}
+
+.meals-head .fine {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.meals {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 8px;
+  min-height: 0;
+}
+
+.mealcard {
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  padding: clamp(8px, 1.8vh, 14px) clamp(12px, 3vw, 16px);
+  box-shadow: var(--pop);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--ink);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.mealcard:hover {
+  border-color: var(--forest);
+  transform: translateY(-1px);
+}
+
+.mealcard.live {
+  background: var(--gold-soft);
+  border: 2px solid var(--forest);
+  box-shadow: 0 8px 24px rgba(22, 56, 38, 0.12);
+}
+
+.mealcard .lock {
+  width: 28px;
+  height: 28px;
+  color: var(--forest);
+  flex-shrink: 0;
+}
+.mealcard .lock .shackle {
+  fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round;
+  transition: transform 0.3s;
+}
+.mealcard .lock .body { fill: currentColor; }
+.mealcard.live .shackle { transform: translateY(-3px) rotate(-22deg); }
+
+.mealcard-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mealcard h3 {
+  font-size: clamp(17px, 2.6vh, 20px);
+  margin: 0;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.mealcard .when {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--forest);
+}
+
+.mealcard .blurb {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.3;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mealcard-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.mealcard .badge {
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--tint);
+  color: var(--muted);
+}
+.mealcard.live .badge {
+  background: var(--forest);
+  color: #fff;
+}
+.mealcard.soon .badge {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+.mealcard .open-btn {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--forest);
+}
+.mealcard.live .open-btn {
+  color: var(--terracotta);
+}
+
+/* ================================================================
+   WEBPAGE 3: FOOTER AS 3RD WEBPAGE (SCREEN 3)
+   ================================================================ */
+.about {
+  height: var(--screen-h);
+  min-height: 380px;
+  max-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 0 6px;
+  scroll-snap-align: start;
+  box-sizing: border-box;
+  background: var(--forest-dark);
+  color: #D4E0D7;
+  border-radius: 20px 20px 0 0;
+  margin-top: 10px;
+}
+
+.about-inner {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding: 12px 14px;
+  gap: 10px;
+}
+
+/* 3 Compact Rows / Cards */
+.foot-sec {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+.foot-sec h3 {
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gold-lt);
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.foot-sec p {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #C0D0C3;
+  margin: 0;
+}
+
+/* Steps */
+.foot-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+.foot-step {
+  font-size: 11px;
+  color: #B2C6B6;
+  line-height: 1.35;
+}
+.foot-step strong {
+  display: block;
+  font-size: 11.5px;
+  color: var(--gold-lt);
+  margin-bottom: 2px;
+}
+
+/* Contact & Timings */
+.foot-contact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.foot-btns {
+  display: flex;
+  gap: 6px;
+}
+.foot-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFDF9;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  text-decoration: none;
+}
+.foot-btn.gold {
+  background: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold);
+}
+
+.hours-compact {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  text-align: center;
+}
+.hours-compact li {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 4px 6px;
+  border-radius: 8px;
+  font-size: 10.5px;
+  color: #B2C6B6;
+}
+.hours-compact li strong {
+  display: block;
+  color: #FFFDF9;
+  font-size: 11px;
+}
+
+/* Bottom bar */
+.foot-copy-bar {
+  flex: 0 0 auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: #8CA894;
+}
+.foot-copy-bar a {
+  color: var(--gold-lt);
+  text-decoration: none;
+  font-weight: 600;
+}

@@ -1,0 +1,65 @@
+{% extends 'orders/base.html' %}
+{% load static %}
+{% block title %}Your token - E-Homely{% endblock %}
+{% block content %}
+{% url 'order_status' order.pk as status_url %}
+{% url 'cancel_order' order.pk as cancel_url %}
+{% url 'menu' as menu_url %}
+<div class="t-brand-wrap" style="margin-bottom:12px">
+  <img class="token-logo" src="{% static 'orders/logo.svg' %}" alt="E-Homely" width="36" height="36">
+  <span class="t-brand">E-HOMELY · PICKUP TOKEN</span>
+</div>
+<h1>Your token</h1>
+<p class="fine">Token number</p>
+<p class="orderno">{{ order.order_no }}</p>
+<section class="panel statusbox">
+  <p class="fine">Status</p>
+  <p class="statusline"><strong id="status">{{ order.get_status_display }}</strong></p>
+  <p id="msg"></p>
+  <p class="fine">This token does not expire. Show it at the counter whenever you collect.</p>
+</section>
+<section class="panel" style="margin-bottom:16px">
+  <ul style="padding-left:1.1em;margin-top:0">
+    {% for i in items %}<li>{{ i.quantity }} x {{ i.dish.name }}</li>{% endfor %}
+  </ul>
+  <div class="line" style="border:0"><span class="grow">Total</span><strong>{{ order.total }}</strong></div>
+  <div class="line" style="border:0"><span class="grow">Paid online</span><strong>{{ order.advance_amount }}</strong></div>
+  <div class="line" style="border:0"><span class="grow">Pay at counter</span><strong>{{ order.balance }}</strong></div>
+</section>
+<form id="cancel-form" method="post" action="{{ cancel_url }}"
+      onsubmit='return confirm("Cancel this order? Ask at the counter about your advance.")' {% if not can_cancel %}hidden{% endif %}>
+  {% csrf_token %}
+  <button type="submit" style="background:#d23a22">Cancel order</button>
+</form>
+<p><a class="btn" href="{{ menu_url }}">Back to meals</a></p>
+<script>
+  localStorage.removeItem('cart');
+  let status = '{{ order.status }}';
+  const messages = {
+    out_of_stock: 'Sorry, something in your order is sold out. Please ask at the counter to swap it or refund the advance.',
+    ready: 'Your order is ready. Please collect it from the counter.',
+    cancelled: 'This order was cancelled. Ask at the counter about your advance.',
+    picked_up: 'Collected. Enjoy your meal!',
+  };
+  function keepToken() {
+    try {
+      if (status === 'picked_up' || status === 'cancelled') localStorage.removeItem('tokenUrl');
+      else localStorage.setItem('tokenUrl', '{{ request.path }}');
+    } catch (e) {}
+  }
+  keepToken();
+  async function refresh() {
+    try {
+      const res = await fetch('{{ status_url }}');
+      const data = await res.json();
+      status = data.status;
+      document.getElementById('status').textContent = data.label;
+      document.getElementById('msg').textContent = messages[data.status] || '';
+      document.getElementById('cancel-form').hidden = !data.can_cancel;
+      keepToken();
+    } catch (e) {}
+  }
+  refresh();
+  setInterval(refresh, 5000);
+</script>
+{% endblock %}

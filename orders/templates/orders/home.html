@@ -1,0 +1,194 @@
+{% extends 'orders/base.html' %}
+{% load static %}
+{% block title %}E-Homely - Home-style food, ready when you are{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'orders/home.css' %}">{% endblock %}
+{% block bodyclass %}home{% endblock %}
+
+{% block content %}
+
+{# ========== WEBPAGE 1: HERO & LIVE CLOCK / STATUS ========== #}
+<section class="hero-section" id="home">
+  <section class="hero-full" style="--hero-img: url('{% static 'orders/hero-desktop.png' %}')">
+    <div class="hero-content">
+      <h2>Home style food ready when you are.</h2>
+      <p class="hero-short">Order ahead, pay the money, and collect fresh at the counter.</p>
+      <div class="cta-wrap">
+        <a class="btn cta" href="#meals">View meals
+          <svg class="cta-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="nowbox">
+    <div>
+      <div class="clock" id="clock">--:--:--</div>
+      <p class="clockdate" id="clockdate">Loading IST...</p>
+    </div>
+    <div>
+      <p class="nowtitle" id="nowtitle">Checking the kitchen...</p>
+      <p class="nowline" id="nowline"></p>
+    </div>
+  </section>
+</section>
+
+{# ========== WEBPAGE 2: CHOOSE A MEAL ========== #}
+<section class="meals-screen" id="meals">
+  <div class="meals-head">
+    <h2>Choose a meal</h2>
+    <p class="fine">Tap any meal to browse dishes. Orders open during serving hours.</p>
+  </div>
+
+  {% if not accepting %}
+    <p class="closed">We are not taking pre-orders right now. Please check back soon.</p>
+  {% endif %}
+
+  <div class="meals">
+    {% for m in meals %}
+      <a class="mealcard" data-meal="{{ m.key }}" href="{% url 'meal_menu' m.key %}">
+        <svg class="lock" viewBox="0 0 24 24" aria-hidden="true">
+          <path class="shackle" d="M8 11V8a4 4 0 0 1 8 0v3"/>
+          <rect class="body" x="5" y="11" width="14" height="10" rx="2.5"/>
+        </svg>
+        <div class="mealcard-info">
+          <h3>{{ m.label }}</h3>
+          <span class="when">{{ m.start_label }} to {{ m.end_label }}</span>
+          <p class="blurb">{{ m.blurb }}</p>
+        </div>
+        <div class="mealcard-action">
+          <span class="badge">Checking</span>
+          <span class="open-btn" data-view="View menu &rarr;" data-order="Order now &rarr;">View menu &rarr;</span>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
+{{ meals|json_script:'meals-data' }}
+<script>
+  const TZ = 'Asia/Kolkata';
+  const clockFmt = new Intl.DateTimeFormat('en-US', {timeZone: TZ, hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true});
+  const dateFmt = new Intl.DateTimeFormat('en-GB', {timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short'});
+  const partsFmt = new Intl.DateTimeFormat('en-GB', {timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'});
+  function istMinutes(d) {
+    const p = {};
+    partsFmt.formatToParts(d).forEach(x => { p[x.type] = x.value; });
+    return Number(p.hour) * 60 + Number(p.minute) + Number(p.second) / 60;
+  }
+
+  function fitHeader() {
+    const h = document.querySelector('.site-header').offsetHeight;
+    document.documentElement.style.setProperty('--hdr', h + 'px');
+  }
+  fitHeader();
+  window.addEventListener('resize', fitHeader);
+
+  const meals = JSON.parse(document.getElementById('meals-data').textContent);
+  const toMin = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  const fmt = t => {
+    const [h, m] = t.split(':').map(Number);
+    return (h % 12 || 12) + ':' + String(m).padStart(2, '0') + ' ' + (h >= 12 ? 'PM' : 'AM');
+  };
+  const dur = mins => {
+    const t = Math.max(1, Math.round(mins));
+    const h = Math.floor(t / 60), m = t % 60;
+    return h ? (m ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
+  };
+
+  function tick() {
+    const now = new Date();
+    const cur = istMinutes(now);
+    const clockEl = document.getElementById('clock');
+    const dateEl = document.getElementById('clockdate');
+    if (clockEl) clockEl.textContent = clockFmt.format(now);
+    if (dateEl) dateEl.textContent = dateFmt.format(now);
+
+    let live = null, next = null, nextIn = Infinity, tomorrow = false;
+    meals.forEach(m => {
+      const s = toMin(m.start), e = toMin(m.end);
+      if (cur >= s && cur < e) live = {m, left: e - cur};
+      let d = s - cur, tm = false;
+      if (d <= 0) { d += 1440; tm = true; }
+      if (d < nextIn) { nextIn = d; next = m; tomorrow = tm; }
+    });
+
+    document.querySelectorAll('[data-meal]').forEach(card => {
+      const isLive = live && live.m.key === card.dataset.meal;
+      const isNext = !live && next && next.key === card.dataset.meal;
+      card.classList.toggle('live', !!isLive);
+      card.classList.toggle('soon', !!isNext);
+      const badge = card.querySelector('.badge');
+      if (badge) badge.textContent = isLive ? 'Serving now' : (isNext ? 'Up next' : 'Closed');
+      const open = card.querySelector('.open-btn');
+      if (open) open.textContent = isLive ? open.dataset.order : open.dataset.view;
+    });
+
+    const title = document.getElementById('nowtitle');
+    const line = document.getElementById('nowline');
+    if (title && line) {
+      if (live) {
+        title.textContent = `${live.m.label} is being served now`;
+        line.textContent = `Open until ${fmt(live.m.end)} (${dur(live.left)} left).`;
+      } else if (next) {
+        title.textContent = `Up next: ${next.label}`;
+        line.textContent = `Starts ${tomorrow ? 'tomorrow at' : 'at'} ${fmt(next.start)} (in ${dur(nextIn)}).`;
+      }
+    }
+  }
+
+  tick();
+  setInterval(tick, 1000);
+</script>
+{% endblock %}
+
+{# ========== WEBPAGE 3: FOOTER AS 3RD WEBPAGE ========== #}
+{% block footer %}
+{% with phone="90740 92355" phone_intl="919074092355" address="Campus Gate, Main Road" %}
+<footer class="about" id="contact">
+  <div class="about-inner">
+    <!-- Box 1: About Us -->
+    <div class="foot-sec">
+      <h3>
+        <img class="token-logo" src="{% static 'orders/logo.svg' %}" alt="E-Homely" width="22" height="22">
+        About E-Homely
+      </h3>
+      <p>Authentic, home-style Kerala meals near campus. Order ahead, pay a small advance online, and collect hot at the counter without waiting.</p>
+    </div>
+
+    <!-- Box 2: How It Works -->
+    <div class="foot-sec">
+      <h3>How It Works</h3>
+      <div class="foot-steps">
+        <div class="foot-step"><strong>1. Pick Meal</strong>Choose Breakfast, Lunch, or Dinner & dishes.</div>
+        <div class="foot-step"><strong>2. Pay Advance</strong>Secure instant token via UPI or Card.</div>
+        <div class="foot-step"><strong>3. Collect</strong>Show token at counter and pay balance.</div>
+      </div>
+    </div>
+
+    <!-- Box 3: Visit & Timings -->
+    <div class="foot-sec">
+      <h3>Visit &amp; Hours</h3>
+      <div class="foot-contact-row">
+        <span style="font-size:11.5px;color:#C0D0C3">{{ address }}</span>
+        <div class="foot-btns">
+          <a class="foot-btn gold" href="tel:+{{ phone_intl }}">Call</a>
+          <a class="foot-btn gold" href="https://wa.me/{{ phone_intl }}">WhatsApp</a>
+          <a class="foot-btn gold" href="https://goo.gl/maps/your-location">Location</a>
+        </div>
+      </div>
+      <ul class="hours-compact">
+        {% for m in meals %}
+          <li><strong>{{ m.label }}</strong>{{ m.start_label }} – {{ m.end_label }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Bottom Bar -->
+  <div class="foot-copy-bar">
+    <span>&copy; E-Homely · Tokens never expire</span>
+    <a href="#home">Back to top &uarr;</a>
+  </div>
+</footer>
+{% endwith %}
+{% endblock %}

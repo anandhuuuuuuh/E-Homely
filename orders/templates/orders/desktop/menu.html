@@ -1,0 +1,202 @@
+{% extends 'orders/desktop/base.html' %}
+{% load static %}
+{% block title %}{{ meal.label }} | E-Homely{% endblock %}
+{% block extra_head %}<style>
+/* Day dial: the whole kitchen day on one strip (6 AM to 11 PM) */
+.dial{position:relative;height:72px;margin:26px 0 8px;border-radius:16px;background:var(--paper);border:1px solid var(--line);
+  background-image:repeating-linear-gradient(90deg,transparent 0 calc(100%/17 - 1px),var(--line) 0 calc(100%/17))}
+.seg{position:absolute;top:8px;bottom:8px;display:flex;flex-direction:column;justify-content:center;padding:4px 14px;border-radius:11px;
+  background:#eaf3e8;color:var(--green-dark);border:1.5px solid transparent;overflow:hidden;white-space:nowrap;transition:.2s}
+.seg b{font-size:14px}.seg small{font-size:11px;color:var(--muted)}
+.seg:hover{border-color:var(--green)}.seg.on{background:var(--green);color:#fff}.seg.on small{color:#cfdbd0}
+.needle{position:absolute;top:-6px;bottom:-6px;width:2px;background:var(--orange);z-index:3;pointer-events:none}
+.needle::after{content:'now';position:absolute;top:-17px;left:50%;transform:translateX(-50%);font:700 11px 'DM Sans',sans-serif;color:var(--orange)}
+
+.shop{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:28px;align-items:start;padding-bottom:70px}
+.shop .dgrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.shop .chips{top:var(--nav)}
+.dcard[draggable=true]{cursor:grab}.dcard.lift{opacity:.45;transform:scale(.95)}
+.grab{position:absolute;right:10px;top:10px;padding:4px 9px;border-radius:20px;background:rgba(32,61,41,.85);color:#fff;font-size:11px;font-weight:700;opacity:0;transition:.2s;pointer-events:none}
+.dcard[draggable=true]:hover .grab{opacity:1}
+
+/* The plate */
+.tray{position:sticky;top:calc(var(--nav) + 20px);padding:24px;border-radius:24px;background:var(--green-dark);color:#fff;box-shadow:var(--shadow);transition:box-shadow .2s}
+.tray.over{box-shadow:0 0 0 4px #e8d7bc,var(--shadow)}
+.tray h2{font-size:26px;color:#fff}.tray .fine{font-size:12px;color:#b9c9bc;margin-top:4px}
+.plate{position:relative;width:min(100%,290px);aspect-ratio:1;margin:18px auto;border-radius:50%;
+  background:radial-gradient(circle,#fff 0 58%,#ece6d8 59% 62%,#fff 63% 86%,#e1dac9 88% 100%);box-shadow:0 14px 30px rgba(0,0,0,.35)}
+.hint{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:0 72px;color:#8d867a;font-size:13px;font-weight:700;pointer-events:none}
+.coin{position:absolute;width:58px;height:58px;padding:0;border-radius:50%;transform:translate(-50%,-50%);border:2px solid var(--green);
+  background:linear-gradient(140deg,#f0dfcc,#e7ede3);color:var(--green);font:700 24px 'Playfair Display',serif;cursor:pointer;transition:left .3s,top .3s}
+.coin.new{animation:pop .3s}@keyframes pop{from{transform:translate(-50%,-50%) scale(.2)}}
+.coin i{position:absolute;right:-5px;top:-5px;min-width:22px;height:22px;border-radius:11px;background:var(--orange);color:#fff;font:700 12px 'DM Sans',sans-serif;font-style:normal;display:grid;place-items:center}
+.ln{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px}
+.ln b{flex:1;font-weight:600}.ln .st{display:flex;align-items:center;gap:8px}
+.ln .st button{width:24px;height:24px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;cursor:pointer}
+.sum{display:flex;justify-content:space-between;align-items:baseline;margin:16px 0;font-size:14px}.sum b{font-size:24px}
+.tray .btn{width:100%;background:#e8d7bc;color:var(--brown)}.tray .btn.off{opacity:.4;pointer-events:none}
+</style>{% endblock %}
+{% block content %}
+{% url 'checkout' as checkout_url %}
+{% url 'stock_json' as stock_url %}
+{% regroup dishes by category as groups %}
+
+<div class="wrap">
+  <section class="page-head">
+    <h1>{{ meal.label }} <span class="state-badge">{{ state_label }}</span></h1>
+    <p>Served {{ meal.start_label }} to {{ meal.end_label }}. {{ meal.blurb }} Drag a dish onto the plate to order it, or use the + button.</p>
+    <div class="dial" id="dial">
+      {% for m in meals %}<a class="seg{% if m.key == meal.key %} on{% endif %}" data-s="{{ m.start }}" data-e="{{ m.end }}" href="{% url 'meal_menu' m.key %}"><b>{{ m.label }}</b><small>{{ m.start_label }} to {{ m.end_label }}</small></a>{% endfor %}
+      <i class="needle" id="needle"></i>
+    </div>
+  </section>
+
+  {% if not accepting %}
+    <p class="closed-note">We are not taking pre-orders right now. Please check back soon.</p>
+  {% elif not serving %}
+    <p class="closed-note">You can look at this menu, but {{ meal.label|lower }} can only be ordered between {{ meal.start_label }} and {{ meal.end_label }}.</p>
+  {% endif %}
+
+  <div class="shop">
+    <div>
+      <nav class="chips" aria-label="Menu categories">
+        {% for g in groups %}<a href="#cat-{{ forloop.counter }}">{{ g.grouper }}</a>{% endfor %}
+      </nav>
+      {% for g in groups %}
+        <h2 class="cat-title" id="cat-{{ forloop.counter }}">{{ g.grouper }}</h2>
+        <div class="dgrid">
+        {% for d in g.list %}
+          <article class="dcard{% if not d.is_available %} soldout{% endif %}" data-row="{{ d.id }}" data-name="{{ d.name }}" data-price="{{ d.price|stringformat:'s' }}"
+                   draggable="{% if d.is_available and serving and accepting %}true{% else %}false{% endif %}">
+            <div class="dphoto">
+              {% if d.image %}<img src="{{ d.image.url }}" alt="" loading="lazy" draggable="false">{% else %}<span class="ph">{{ d.name|slice:':1' }}</span>{% endif %}
+              <span class="dcat">{{ d.category }}</span><span class="grab">Drag to plate</span>
+            </div>
+            <div class="dinfo">
+              <div class="drow"><h3>{{ d.name }}</h3><span class="dprice">&#8377;{{ d.price|floatformat:'-2' }}</span></div>
+              <div class="dfoot">
+                <span class="tag">Sold out</span>
+                <div class="qty" style="margin-left:auto">
+                  <button type="button" data-id="{{ d.id }}" data-delta="-1" aria-label="Remove one {{ d.name }}" {% if not d.is_available %}disabled{% endif %}>-</button>
+                  <span data-q="{{ d.id }}">0</span>
+                  <button type="button" data-id="{{ d.id }}" data-delta="1" aria-label="Add one {{ d.name }}" {% if not d.is_available or not serving or not accepting %}disabled{% endif %}>+</button>
+                </div>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+        </div>
+      {% empty %}
+        <p class="empty">No {{ meal.label|lower }} dishes yet. Please check back soon.</p>
+      {% endfor %}
+    </div>
+
+    <aside class="tray" id="tray">
+      <div class="t-brand-wrap" style="margin-bottom:12px">
+        <img class="token-logo" src="{% static 'orders/logo.svg' %}" alt="E-Homely" width="30" height="30">
+        <span class="t-brand" style="color:#FFFDF9">YOUR PLATE</span>
+      </div>
+      <p class="fine">Click a dish on the plate to take one off.</p>
+      <div class="plate" id="plate"><div class="hint" id="hint">Drop dishes here</div></div>
+      <div id="lines"></div>
+      <div class="sum"><span>Total</span><b id="total">&#8377;0</b></div>
+      <a class="btn off" id="go" href="{{ checkout_url }}">Go to checkout</a>
+    </aside>
+  </div>
+</div>
+
+<script>
+  const CAN = {{ serving|yesno:"true,false" }} && {{ accepting|yesno:"true,false" }};
+  let cart = JSON.parse(localStorage.getItem('cart') || '{}');
+  const info = {}, shown = new Set();
+  const $ = id => document.getElementById(id);
+  const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+  const money = n => (Math.round(n * 100) / 100).toFixed(2).replace(/\.00$/, '');
+  const save = () => localStorage.setItem('cart', JSON.stringify(cart));
+  document.querySelectorAll('.dcard').forEach(c => {
+    info[c.dataset.row] = {name: c.dataset.name, price: +c.dataset.price, ok: !c.classList.contains('soldout')};
+  });
+
+  function chg(id, d) {
+    const i = info[id];
+    if (d > 0 && (!CAN || !i || !i.ok)) return;
+    const q = Math.min(20, Math.max(0, (cart[id] || 0) + d));
+    q ? cart[id] = q : delete cart[id];
+    save(); paint();
+  }
+
+  function paint() {
+    document.querySelectorAll('[data-q]').forEach(el => { el.textContent = cart[el.dataset.q] || 0; });
+    const ids = Object.keys(cart).filter(id => info[id]), n = ids.length;
+    $('plate').querySelectorAll('.coin').forEach(c => c.remove());
+    ids.forEach((id, i) => {
+      const a = -Math.PI / 2 + i * 2 * Math.PI / n, r = n > 1 ? 33 : 0;
+      const b = document.createElement('button');
+      b.type = 'button'; b.dataset.id = id; b.title = 'Take one off';
+      b.className = 'coin' + (shown.has(id) ? '' : ' new');
+      b.style.left = (50 + r * Math.cos(a)) + '%'; b.style.top = (50 + r * Math.sin(a)) + '%';
+      b.innerHTML = esc(info[id].name.charAt(0)) + '<i>' + cart[id] + '</i>';
+      $('plate').append(b); shown.add(id);
+    });
+    $('hint').style.display = n ? 'none' : 'grid';
+    let total = 0;
+    $('lines').innerHTML = ids.map(id => {
+      const s = info[id].price * cart[id]; total += s;
+      return `<div class="ln"><b>${esc(info[id].name)}</b><span class="st"><button type="button" data-id="${id}" data-d="-1">-</button>${cart[id]}<button type="button" data-id="${id}" data-d="1">+</button></span><span>${money(s)}</span></div>`;
+    }).join('');
+    $('total').innerHTML = '&#8377;' + money(total);
+    $('go').classList.toggle('off', !n);
+    paintCount();
+  }
+
+  // Drag a dish onto the plate
+  document.querySelectorAll('.dcard').forEach(c => {
+    c.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', c.dataset.row); e.dataTransfer.effectAllowed = 'copy'; c.classList.add('lift'); });
+    c.addEventListener('dragend', () => c.classList.remove('lift'));
+  });
+  const tray = $('tray');
+  ['dragenter', 'dragover'].forEach(t => tray.addEventListener(t, e => { e.preventDefault(); tray.classList.add('over'); }));
+  tray.addEventListener('dragleave', e => { if (!tray.contains(e.relatedTarget)) tray.classList.remove('over'); });
+  tray.addEventListener('drop', e => { e.preventDefault(); tray.classList.remove('over'); chg(e.dataTransfer.getData('text/plain'), 1); });
+
+  document.querySelectorAll('button[data-id][data-delta]').forEach(b => b.addEventListener('click', () => chg(b.dataset.id, +b.dataset.delta)));
+  $('plate').addEventListener('click', e => { const c = e.target.closest('.coin'); if (c) chg(c.dataset.id, -1); });
+  $('lines').addEventListener('click', e => { const b = e.target.closest('button'); if (b) chg(b.dataset.id, +b.dataset.d); });
+
+  // Day dial: place each meal on the strip and move the needle with the clock (kitchen time, IST)
+  const DAY0 = 360, SPAN = 1020;
+  const toMin = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  document.querySelectorAll('.seg').forEach(s => {
+    const a = toMin(s.dataset.s), b = toMin(s.dataset.e);
+    s.style.left = ((a - DAY0) / SPAN * 100) + '%'; s.style.width = ((b - a) / SPAN * 100) + '%';
+  });
+  function needle() {
+    const p = new Intl.DateTimeFormat('en-GB', {timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'}).format(new Date()).split(':').map(Number);
+    const pct = Math.min(100, Math.max(0, (p[0] * 60 + p[1] - DAY0) / SPAN * 100));
+    $('needle').style.left = pct + '%';
+  }
+  needle(); setInterval(needle, 30000);
+
+  async function refreshStock() {
+    try {
+      const data = await (await fetch('{{ stock_url }}')).json();
+      data.dishes.forEach(d => {
+        info[d.id] = {name: d.name, price: +d.price, ok: d.available};
+        const row = document.querySelector(`[data-row='${d.id}']`);
+        if (row) {
+          row.classList.toggle('soldout', !d.available);
+          row.draggable = d.available && CAN;
+          row.querySelectorAll('.qty button').forEach(b => { b.disabled = !d.available || (+b.dataset.delta > 0 && !CAN); });
+        }
+        if (!d.available) delete cart[d.id];
+      });
+      save(); paint();
+    } catch (e) {}
+  }
+
+  // Coming back with the Back button: re-read the cart so the plate is never stale.
+  window.addEventListener('pageshow', e => { if (e.persisted) { cart = JSON.parse(localStorage.getItem('cart') || '{}'); paint(); } });
+
+  paint(); refreshStock(); setInterval(refreshStock, 8000);
+</script>
+{% endblock %}

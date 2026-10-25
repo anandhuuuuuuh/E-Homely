@@ -1,0 +1,96 @@
+{% extends 'orders/base.html' %}
+{% load static %}
+{% block title %}Orders{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'orders/staff.css' %}">{% endblock %}
+{% block content %}
+{% csrf_token %}
+<div class="t-brand-wrap" style="margin-bottom:8px">
+  <img class="brand-logo" src="{% static 'orders/logo.svg' %}" alt="E-Homely" width="34" height="34">
+  <span class="t-brand">KITCHEN DASHBOARD</span>
+</div>
+<p style="margin:6px 0 16px"><strong>Orders</strong> | <a href='/staff/menu/'>Menu stock</a></p>
+<h1>Open orders</h1>
+<div id='list'></div>
+<script>
+  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const seen = new Set();
+  let first = true;
+ 
+  // Escape customer text before showing it, so nobody can inject code.
+  const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+ 
+  function beep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      osc.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.25);
+    } catch (e) {}
+  }
+ 
+  function btn(o, status, label) {
+    return `<button data-id='${o.id}' data-s='${status}' ${o.status === status ? 'disabled' : ''}>${label}</button>`;
+  }
+ 
+  // Two groups: the normal steps, then the "something went wrong" steps.
+  function buttons(o) {
+    return `<div class='flow'>
+        ${btn(o, 'preparing', 'Preparing')}
+        ${btn(o, 'ready', 'Ready')}
+        ${btn(o, 'picked_up', 'Picked up')}
+      </div>
+      <div class='exc'>
+        ${btn(o, 'out_of_stock', 'Out of stock')}
+        ${btn(o, 'cancelled', 'Cancel')}
+      </div>`;
+  }
+ 
+  function itemsHtml(o) {
+    return o.items.map(i =>
+      i.sold_out
+        ? `<span style='color:#b00020;font-weight:600'>${esc(i.text)} (sold out)</span>`
+        : esc(i.text)
+    ).join('<br>');
+  }
+ 
+  async function load() {
+    const res = await fetch('/staff/api/orders/');
+    const data = await res.json();
+    let fresh = false;
+    const html = data.orders.map(o => {
+      if (!seen.has(o.id)) { seen.add(o.id); fresh = true; }
+      const warn = o.items.some(i => i.sold_out);
+      let bg = '';
+      if (warn) bg = 'background:#ffe0e0;';
+      else if (o.status === 'new') bg = 'background:#fff4cc;';
+      return `<div class='order' style='${bg}'>
+        <div class='info'>
+          <strong>#${esc(o.order_no)}</strong> ${esc(o.name)} - ${esc(o.phone)}
+          <small>[${esc(o.status_label)}] &bull; ${esc(o.time)}</small><br>
+          ${itemsHtml(o)}<br>
+          <small>Total ${esc(o.total)} | paid ${esc(o.paid)} | collect ${esc(o.balance)}${o.note ? ' - ' + esc(o.note) : ''}</small>
+        </div>
+        <div class='actions'>${buttons(o)}</div>
+      </div>`;
+    }).join('');
+    document.getElementById('list').innerHTML = html || '<p>No open orders.</p>';
+    if (fresh && !first) beep();
+    first = false;
+  }
+ 
+  document.getElementById('list').addEventListener('click', async e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    await fetch(`/staff/api/orders/${b.dataset.id}/status/`, {
+      method: 'POST',
+      headers: {'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded'},
+      body: 'status=' + b.dataset.s,
+    });
+    load();
+  });
+ 
+  load();
+  setInterval(load, 5000);
+</script>
+{% endblock %}

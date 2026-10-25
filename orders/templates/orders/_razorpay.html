@@ -1,0 +1,39 @@
+{% comment %}Opens Razorpay Checkout, then posts the result to /payment/verify/ for server-side signature check.{% endcomment %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+(function () {
+  const btn = document.getElementById('paybtn');
+  const msg = document.getElementById('paymsg');
+  function openPay() {
+    if (typeof Razorpay === 'undefined') {
+      btn.disabled = false;
+      msg.textContent = 'The payment window could not load. Check your connection and tap the button to try again.';
+      return;
+    }
+    btn.disabled = true;
+    msg.textContent = '';
+    const rzp = new Razorpay({
+      key: '{{ key_id }}',
+      amount: {{ amount_paise }},
+      currency: 'INR',
+      name: 'E-Homely',
+      description: 'Advance for your order',
+      order_id: '{{ order.razorpay_order_id }}',
+      prefill: { name: "{{ order.name|escapejs }}", contact: "{{ order.phone|escapejs }}" },
+      theme: { color: '{{ theme|default:"#1f6b45" }}' },
+      handler: function (r) {
+        const f = document.getElementById('verifyform');
+        f.razorpay_payment_id.value = r.razorpay_payment_id;
+        f.razorpay_order_id.value = r.razorpay_order_id;
+        f.razorpay_signature.value = r.razorpay_signature;
+        f.submit();
+      },
+      modal: { ondismiss: function () { btn.disabled = false; msg.textContent = 'Payment was not completed. Tap the button to try again.'; } },
+    });
+    rzp.on('payment.failed', function () { btn.disabled = false; msg.textContent = 'Payment failed. Please try again.'; });
+    rzp.open();
+  }
+  btn.addEventListener('click', openPay);
+  setTimeout(openPay, 400);   // open automatically; the button is for retries
+})();
+</script>

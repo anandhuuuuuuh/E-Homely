@@ -1,0 +1,101 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#163826">
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="{% static 'orders/favicon.svg' %}">
+  <title>Staff sign in | E-Homely</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'orders/theme.css' %}">
+  <style>
+    html, body { height: 100%; }
+    body.sl {
+      margin: 0; min-height: 100vh; min-height: 100svh;
+      display: grid; place-items: center; padding: 20px; box-sizing: border-box;
+      font-family: var(--body, 'Plus Jakarta Sans', system-ui, sans-serif);
+      background: linear-gradient(rgba(12,30,20,.72), rgba(12,30,20,.78)),
+                  url("{% static 'orders/hero-desktop.png' %}") center / cover no-repeat, var(--forest-dark);
+    }
+    .sl-card {
+      width: 100%; max-width: 400px; box-sizing: border-box; padding: 30px 26px 26px;
+      background: var(--paper, #fff); border-radius: 22px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.4);
+    }
+    .sl-brand { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 20px; text-align: center; }
+    .sl-brand img { width: 52px; height: 52px; }
+    .sl-brand h1 { margin: 0; font: 700 24px var(--display, 'Playfair Display', serif); color: var(--forest); letter-spacing: -.01em; }
+    .sl-brand p { margin: 0; font-size: 13px; color: var(--muted); }
+    .sl-field { margin-bottom: 14px; }
+    .sl-field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: var(--ink); }
+    .sl-field input {
+      width: 100%; box-sizing: border-box; padding: 13px 14px; font: 500 16px var(--body, sans-serif);
+      color: var(--ink); background: #fff; border: 1.5px solid var(--line-strong, #D6CDBC); border-radius: 12px; outline: none;
+    }
+    .sl-field input:focus { border-color: var(--forest); box-shadow: 0 0 0 3px rgba(31,77,53,.15); }
+    .sl-pw { position: relative; }
+    .sl-pw input { padding-right: 64px; }
+    .sl-pw button {
+      position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: auto; padding: 8px 10px;
+      background: transparent; color: var(--forest); box-shadow: none; font-size: 12px; border-radius: 8px;
+    }
+    .sl-pw button:hover { background: var(--forest-light, #EBF3EE); transform: translateY(-50%); box-shadow: none; }
+    .sl-err {
+      margin: 0 0 14px; padding: 10px 12px; border-radius: 10px; font-size: 13px; font-weight: 600;
+      background: var(--spice-soft, #FBECE7); color: var(--spice, #A8482A); border: 1px solid #F0CFC4;
+    }
+    .sl-go { width: 100%; padding: 14px; font-size: 15px; margin-top: 4px; }
+    .sl-back { display: block; margin-top: 16px; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: none; }
+    .sl-back:hover { color: var(--forest); }
+  </style>
+</head>
+<body class="sl">
+  <main class="sl-card">
+    <div class="sl-brand">
+      <img src="{% static 'orders/logo.svg' %}" alt="E-Homely" width="52" height="52">
+      <h1>Staff sign in</h1>
+      <p>E-Homely kitchen dashboard</p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+
+      {% if form.errors %}
+        <p class="sl-err" role="alert">
+          {% for error in form.non_field_errors %}{{ error }}{% empty %}Please enter your username and password.{% endfor %}
+        </p>
+      {% endif %}
+
+      <div class="sl-field">
+        <label for="id_username">Username</label>
+        <input type="text" name="username" id="id_username" value="{{ form.username.value|default:'' }}"
+               autocomplete="username" autocapitalize="none" autocorrect="off" required autofocus>
+      </div>
+      <div class="sl-field">
+        <label for="id_password">Password</label>
+        <div class="sl-pw">
+          <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+          <button type="button" id="sl-toggle" aria-label="Show password">Show</button>
+        </div>
+      </div>
+      <button class="btn sl-go" type="submit">Sign in</button>
+    </form>
+
+    <a class="sl-back" href="{% url 'menu' %}">&larr; Back to E-Homely</a>
+  </main>
+  <script>
+    const pw = document.getElementById('id_password'), t = document.getElementById('sl-toggle');
+    t.addEventListener('click', () => {
+      const show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      t.textContent = show ? 'Hide' : 'Show';
+      t.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    });
+  </script>
+</body>
+</html>

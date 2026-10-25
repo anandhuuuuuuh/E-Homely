@@ -1,0 +1,124 @@
+{% load static i18n %}
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#163826">
+  <link rel="icon" type="image/svg+xml" href="{% static 'orders/favicon.svg' %}">
+  <link rel="alternate icon" href="{% static 'orders/favicon.png' %}">
+  {% include 'orders/_ui_cookie.html' %}
+  <title>{% block title %}E-Homely{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'orders/style.css' %}">
+  <link rel="stylesheet" href="{% static 'orders/chatbot.css' %}">
+  {% block extra_head %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'orders/theme.css' %}">
+  <script>
+    // Shared by every page: cart count, and Cart -> Token while a token is active.
+    // The pill goes back to "Cart" as soon as the cart has items, so checkout is never skipped.
+    let tokenChecked = false;
+    function checkToken(url) {
+      // Drop a stale token link (order collected/cancelled, or not ours any more) once per page.
+      if (tokenChecked) return;
+      tokenChecked = true;
+      fetch(url.replace(/\/?$/, '/') + 'status/', { credentials: 'same-origin' })
+        .then(r => r.status === 404 ? { gone: true } : (r.ok ? r.json() : null))
+        .then(d => {
+          if (d && (d.gone || d.status === 'picked_up' || d.status === 'cancelled')) {
+            try { localStorage.removeItem('tokenUrl'); } catch (e) { }
+            paintCount();
+          }
+        })
+        .catch(() => { });
+    }
+    function paintCount() {
+      let n = 0;
+      try {
+        n = Object.values(JSON.parse(localStorage.getItem('cart') || '{}')).reduce((a, b) => a + (Number(b) || 0), 0);
+      } catch (e) { }
+      document.querySelectorAll('[data-cart-count]').forEach(el => {
+        const changed = el.textContent !== String(n);
+        el.textContent = n;
+        if (changed) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+      });
+      const bar = document.getElementById('cartbar');
+      if (bar) bar.classList.toggle('show', n > 0);
+      const pill = document.getElementById('cartpill');
+      if (!pill) return;
+      if (!pill.dataset.cartHref) pill.dataset.cartHref = pill.getAttribute('href');
+      let url = null;
+      try { url = localStorage.getItem('tokenUrl'); } catch (e) { }
+      const label = document.getElementById('pilllabel');
+      const count = pill.querySelector('b');
+      if (url && n === 0) {
+        pill.href = url;
+        label.textContent = 'Token';
+        count.style.display = 'none';
+      } else {
+        pill.href = pill.dataset.cartHref;
+        label.textContent = 'Cart';
+        count.style.display = '';
+      }
+      if (url) checkToken(url);
+    }
+    document.addEventListener('DOMContentLoaded', paintCount);
+    window.addEventListener('pageshow', paintCount);
+  </script>
+</head>
+
+<body class="{% block bodyclass %}{% endblock %}">
+  <header class="site-header">
+    <div class="bar">
+      <a class="brand" href="{% url 'menu' %}">
+        <img class="brand-logo" src="{% static 'orders/logo.svg' %}" alt="E-Homely" width="40" height="40">
+        <span><strong>E-<span lang="ml">ഹോംലി</span></strong><small>HOMELY FOOD</small></span>
+      </a>
+      <nav class="nav">
+        {% if '/staff/' in request.path %}
+        <a href="/staff/">Orders</a>
+        <a href="/staff/menu/">Stock</a>
+        <form method="post" action="{% url 'staff_logout' %}" style="display:inline;margin:0">{% csrf_token %}<button type="submit" class="pill" style="font-size:13px;padding:8px 16px">Log out</button></form>
+        {% else %}
+        <a href="{% url 'menu' %}#meals">Meals</a>
+        <a href="{% url 'menu' %}#contact">About</a>
+        <a class="pill" id="cartpill" href="{% url 'checkout' %}"><span id="pilllabel">Cart</span> <b
+            data-cart-count>0</b></a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main>{% block content %}{% endblock %}</main>
+
+  {% block footer %}
+  <footer class="site-footer">
+    <div class="foot-brand-bar">
+      <img class="foot-logo" src="{% static 'orders/logo.svg' %}" alt="E-Homely" width="34" height="34">
+      <span class="foot-title">E-Homely</span>
+    </div>
+    <div class="copy">
+      &copy; E-Homely. Pay an advance online, the rest at the counter.
+      {% if request.resolver_match.url_name == 'menu' or request.resolver_match.url_name == 'about' %}
+    <a class="foot-btn gold" href="https://wa.me/{{ phone_intl }}">WhatsApp</a>
+    <a class="foot-btn gold" href="{% url 'location' %}">Location</a>
+{% endif %}
+    </div>
+  </footer>
+  {% endblock %}
+  {% if '/staff/' not in request.path %}
+  <script>
+    window.CHAT_URL   = "{% url 'chat' %}";
+    window.CHAT_CSRF  = "{{ csrf_token }}";
+    window.STATIC_URL = "{% get_static_prefix %}";
+  </script>
+  <script src="{% static 'orders/chatbot.js' %}"></script>
+  {% endif %}
+</body>
+
+</html>

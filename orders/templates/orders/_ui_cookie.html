@@ -1,0 +1,14 @@
+{% if ui_check %}<script>
+// Picks the laptop or phone layout from the real screen width (>= 1024px = laptop).
+(function () {
+  var mq = window.matchMedia('(min-width:1024px)');
+  var have = '{{ is_desktop|yesno:"desktop,phone" }}';
+  function set() { document.cookie = 'ui=' + (mq.matches ? 'desktop' : 'phone') + ';path=/;max-age=31536000;samesite=lax'; }
+  set();
+  var want = mq.matches ? 'desktop' : 'phone';
+  if (want !== have) {
+    if (!sessionStorage.getItem('uiReload')) { sessionStorage.setItem('uiReload', '1'); location.replace(location.href); }
+  } else { sessionStorage.removeItem('uiReload'); }
+  mq.addEventListener('change', function () { set(); location.replace(location.href); });
+})();
+</script>{% endif %}

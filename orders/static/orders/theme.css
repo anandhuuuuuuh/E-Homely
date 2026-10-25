@@ -1,0 +1,334 @@
+/* =====================================================================
+   E-Homely — Unified Professional Restaurant Design System
+   Palette: Deep Kerala Forest Green · Warm Turmeric Gold · Hearth Terracotta · Warm Linen Cream
+   ===================================================================== */
+:root {
+  /* ── Core Brand Palette ── */
+  --forest:        #163826;  /* Deep heritage forest green */
+  --forest-mid:    #1F4D35;  /* Hover / active green */
+  --forest-dark:   #10281B;  /* Deepest forest footer background */
+  --forest-light:  #EBF3EE;  /* Soft green tint */
+  --forest-subtle: #F0F6F2;
+
+  --gold:          #C8933A;  /* Warm golden turmeric */
+  --gold-hover:    #B2802E;
+  --gold-soft:     #FDF6E8;  /* Gentle turmeric cream */
+  --gold-lt:       #F7D788;  /* Highlight gold */
+
+  --terracotta:    #A8482A;  /* Hearth clay / spice accent */
+  --terracotta-soft:#FBECE7;
+  --spice:         #A8482A;  /* Alert / cancel / status */
+  --spice-soft:    #FBECE7;
+
+  /* ── Surfaces & Neutrals ── */
+  --cream:         #FAF6EE;  /* Warm linen page background */
+  --mist:          #FAF6EE;
+  --paper:         #FFFFFF;  /* Card surface */
+  --tint:          #F3ECE0;  /* Quiet panels & summaries */
+  --sage:          #F3ECE0;
+  --line:          #E5DEC9;  /* Hairline borders */
+  --line-strong:   #D6CDBC;  /* Stronger borders */
+
+  /* ── Typography Colours ── */
+  --ink:           #1F1A17;  /* Deep espresso text */
+  --muted:         #685F56;  /* Secondary text */
+  --subtle:        #948B82;  /* Tertiary captions */
+
+  /* ── Legacy Aliases ── */
+  --leaf:          var(--forest);
+  --leaf-deep:     var(--forest);
+  --clay:          var(--gold);
+  --haldi:         var(--gold);
+  --chilli:        var(--spice);
+  --green:         var(--forest);
+  --green-dark:    var(--forest-dark);
+  --orange:        var(--gold);
+  --brown:         var(--ink);
+
+  /* ── Shadows ── */
+  --pop:           0 6px 20px rgba(31, 26, 23, 0.06);
+  --shadow-sm:     0 3px 10px rgba(31, 26, 23, 0.05);
+  --shadow:        0 14px 36px rgba(31, 26, 23, 0.09);
+  --shadow-lg:     0 22px 60px rgba(31, 26, 23, 0.12);
+  --shadow-btn:    0 6px 18px rgba(22, 56, 38, 0.28);
+
+  /* ── Typography & Navigation ── */
+  --display:       'Playfair Display', Georgia, serif;
+  --body:          'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --nav:           72px;
+}
+
+/* ================================================================
+   GLOBAL RESET & BASE
+   ================================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
+
+body {
+  margin: 0;
+  font-family: var(--body);
+  background-color: var(--cream);
+  color: var(--ink);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1, h2, h3 {
+  font-family: var(--display);
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  margin: 0 0 0.4em;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ================================================================
+   BRAND & NAVIGATION
+   ================================================================ */
+.site-header, .topnav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(250, 246, 238, 0.94);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 2px 12px rgba(31, 26, 23, 0.04);
+}
+
+.site-header .bar, .topnav .wrap {
+  min-height: var(--nav);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.brand-logo, .site-logo {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  object-fit: contain;
+  border-radius: 50%;
+  transition: transform 0.25s ease;
+}
+.brand:hover .brand-logo { transform: rotate(4deg) scale(1.05); }
+
+.brand span strong {
+  display: block;
+  font-family: var(--display);
+  font-size: 17px;
+  letter-spacing: 1.8px;
+  color: var(--forest);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.brand span small {
+  display: block;
+  font-family: var(--body);
+  font-size: 9.5px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.nav, .nav-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav a, .nav-links a:not(.pill) {
+  text-decoration: none;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 14px;
+  transition: color 0.2s;
+  padding: 6px 0;
+  position: relative;
+}
+
+.nav a:hover, .nav-links a:hover {
+  color: var(--forest);
+}
+
+.nav-links a:not(.pill)::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background: var(--gold);
+  transition: width 0.25s ease;
+}
+.nav-links a:not(.pill):hover::after { width: 100%; }
+
+/* Cart Pill */
+.nav a.pill, .nav-links a.pill, .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--forest);
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px 12px 8px 18px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 13.5px;
+  box-shadow: var(--shadow-btn);
+  transition: transform 0.18s, background 0.2s, box-shadow 0.2s;
+}
+
+.pill:hover {
+  background: var(--forest-mid);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(22, 56, 38, 0.35);
+}
+
+.pill b {
+  background: var(--gold-soft);
+  color: var(--forest);
+  border-radius: 999px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* ================================================================
+   BUTTONS
+   ================================================================ */
+button, .btn {
+  border: none;
+  border-radius: 999px;
+  background: var(--forest);
+  color: #fff;
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  padding: 12px 24px;
+  box-shadow: var(--shadow-btn);
+  transition: transform 0.18s, background 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+button:hover, .btn:hover {
+  background: var(--forest-mid);
+  transform: translateY(-1px);
+  box-shadow: 0 9px 24px rgba(22, 56, 38, 0.35);
+}
+
+button:active, .btn:active { transform: translateY(1px); }
+
+.btn-primary { background: var(--forest); color: #fff; }
+.btn-primary:hover { background: var(--forest-mid); }
+.btn-light {
+  background: var(--paper);
+  border: 1.5px solid var(--line-strong);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+.btn-light:hover {
+  background: var(--tint);
+  border-color: var(--forest);
+  transform: translateY(-1px);
+}
+.btn-gold {
+  background: var(--gold);
+  color: var(--ink);
+  box-shadow: 0 6px 18px rgba(200, 147, 58, 0.28);
+}
+.btn-gold:hover { background: var(--gold-hover); }
+
+/* ================================================================
+   CARDS & PANELS
+   ================================================================ */
+.panel, .dpanel, .summary, .status-card, .token-card {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--pop);
+}
+
+.t-brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.token-logo, .foot-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  vertical-align: middle;
+  border-radius: 50%;
+}
+.t-brand {
+  font-family: var(--display);
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  color: var(--forest);
+  font-weight: 700;
+}
+
+/* ================================================================
+   CHATBOT WIDGET
+   ================================================================ */
+.eho-chatbot-widget {
+  --chat-primary: var(--forest);
+  --chat-dark:    var(--forest-mid);
+  --chat-accent:  var(--cream);
+  --chat-text:    var(--ink);
+  --chat-light:   #FFFDF9;
+  --chat-border:  var(--line);
+}
+.chat-toggle {
+  /* No background shorthand here: the avatar is set as background-image inline by chatbot.js */
+  background-color: var(--forest);
+  box-shadow: 0 8px 24px rgba(22, 56, 38, 0.35) !important;
+  border: 2px solid #fff !important;
+}
+/* The global button:hover rule uses the background shorthand, which resets the avatar's size/position
+   and left only a dark corner of the image showing. Keep the avatar fitted on hover/focus/active. */
+.chat-toggle:hover, .chat-toggle:focus, .chat-toggle:active {
+  background-color: var(--forest);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.chat-header {
+  background: linear-gradient(135deg, var(--forest), var(--forest-mid)) !important;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
